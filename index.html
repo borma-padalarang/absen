@@ -1,102 +1,51 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Absensi MD Borma Padalarang</title>
-  <style>
-    body {
-      font-family: 'Segoe UI', Roboto, Arial, sans-serif;
-      margin: 0;
-      background: linear-gradient(135deg, #ffd966 0%, #ff9f1c 100%);
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-    .card {
-      background: #fff;
-      padding: 30px;
-      border-radius: 16px;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-      width: 360px;
-      text-align: center;
-    }
-    h1 { color: #ff6b00; margin-bottom: 16px; }
-    input {
-      width: 100%;
-      padding: 10px;
-      margin: 8px 0;
-      border: 1px solid #ddd;
-      border-radius: 8px;
-    }
-    button {
-      width: 100%;
-      background: #ff6b00;
-      color: white;
-      border: none;
-      padding: 12px;
-      border-radius: 8px;
-      cursor: pointer;
-      font-weight: 600;
-    }
-    button:hover { background: #e65c00; }
-    .msg { margin-top: 10px; font-size: 14px; }
-    .success { background: #d1e7dd; color: #0f5132; padding: 10px; border-radius: 8px; }
-    .error { background: #f8d7da; color: #842029; padding: 10px; border-radius: 8px; }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Absensi MD</title>
 </head>
 <body>
-  <div class="card">
-    <h1>Absensi MD Borma</h1>
-    <input id="nama" type="text" placeholder="Nama (contoh: SANDI)" />
-    <input id="divisi" type="text" placeholder="Divisi (contoh: SNS)" />
-    <button onclick="kirimData()">Absen Sekarang</button>
-    <div id="msg" class="msg"></div>
-    <small>Pastikan nama & divisi sesuai data di sheet <b>Karyawan</b>.</small>
-  </div>
+<h2>Absensi MD</h2>
+<input type="text" id="nama" placeholder="Nama MD">
+<input type="text" id="branch" placeholder="Branch">
+<button onclick="absen()">Absen</button>
+<div id="message"></div>
 
-  <script>
-    const scriptURL = "https://script.google.com/macros/s/AKfycbzm-GOIM44N_lhruPo1kktH1_uXz5bSZwnB2H_K4WnZild2xAFT2yINCIcqWqB96YWl/exec";
+<script>
+const scriptURL = "https://script.google.com/macros/s/AKfycbyacNb-8U5ixI4_ypZeHU6OyElvnhGK6X05bSE4vxVj5_um76zEDb9Gq5dXH6jZIeZttw/exec";
 
-    async function kirimData() {
-      const nama = document.getElementById("nama").value.trim();
-      const divisi = document.getElementById("divisi").value.trim();
-      const msg = document.getElementById("msg");
+async function absen() {
+  const nama = document.getElementById("nama").value.trim();
+  const branch = document.getElementById("branch").value.trim();
+  const msg = document.getElementById("message");
 
-      msg.className = "msg";
-      msg.textContent = "";
+  if(!nama || !branch) {
+    msg.innerText = "Nama & Branch harus diisi!";
+    return;
+  }
 
-      if (!nama || !divisi) {
-        msg.classList.add("error");
-        msg.textContent = "Nama dan divisi wajib diisi.";
-        return;
-      }
+  msg.innerText = "Mengirim data...";
 
-      msg.textContent = "Mengirim data...";
+  try {
+    const res = await fetch(scriptURL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ nama, branch })
+    });
+    const data = await res.json();
 
-      try {
-        const res = await fetch(scriptURL, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ nama, divisi })
-        });
-        const data = await res.json();
-
-        if (data.status === "success") {
-          msg.className = "msg success";
-          msg.textContent = data.message;
-          document.getElementById("nama").value = "";
-          document.getElementById("divisi").value = "";
-        } else {
-          msg.className = "msg error";
-          msg.textContent = data.message;
-        }
-      } catch (err) {
-        msg.className = "msg error";
-        msg.textContent = "Gagal mengirim data: " + err.message;
-      }
+    if(data.status === "success") {
+      msg.innerText = data.message;
+      // Tampilkan halaman jobdesk / dokumentasi
+      document.body.innerHTML = `<h2>Jobdesk MD</h2><p>Menu dokumentasi di sini...</p>`;
+    } else {
+      msg.innerText = data.message;
     }
-  </script>
+  } catch(err) {
+    msg.innerText = "Gagal mengirim data: " + err.message;
+  }
+}
+</script>
 </body>
 </html>
