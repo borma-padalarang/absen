@@ -315,12 +315,47 @@
                         <!-- Tab Content: Data Absensi -->
                         <div id="contentAbsensi" class="tab-content hidden">
                             <div class="bg-gray-50 rounded-lg p-6">
-                                <div class="flex justify-between items-center mb-4">
-                                    <h3 class="text-lg font-semibold text-gray-900">Data Absensi Hari Ini</h3>
-                                    <button id="refreshAttendanceBtn" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
-                                        Refresh Data
-                                    </button>
+                                <!-- Header dengan Query Controls -->
+                                <div class="flex flex-col lg:flex-row lg:justify-between lg:items-center mb-6 space-y-4 lg:space-y-0">
+                                    <h3 class="text-lg font-semibold text-gray-900">Data Absensi</h3>
+                                    
+                                    <!-- Query Controls -->
+                                    <div class="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3">
+                                        <div class="flex items-center space-x-2">
+                                            <label for="queryTanggal" class="text-sm font-medium text-gray-700 whitespace-nowrap">Pilih Tanggal:</label>
+                                            <input type="date" id="queryTanggal" class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-sm">
+                                        </div>
+                                        
+                                        <div class="flex space-x-2">
+                                            <button id="queryAbsensiBtn" class="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors text-sm font-medium">
+                                                Query Data
+                                            </button>
+                                            <button id="showTodayBtn" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors text-sm font-medium">
+                                                Hari Ini
+                                            </button>
+                                        </div>
+                                    </div>
                                 </div>
+
+                                <!-- Action Buttons -->
+                                <div class="flex justify-between items-center mb-4">
+                                    <div id="queryResultInfo" class="text-sm text-gray-600">
+                                        <!-- Info hasil query akan muncul di sini -->
+                                    </div>
+                                    <div class="flex space-x-2">
+                                        <button id="exportAbsensiBtn" class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors text-sm">
+                                            Export Data
+                                        </button>
+                                        <button id="clearAbsensiBtn" class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors text-sm">
+                                            Clear Data
+                                        </button>
+                                        <button id="refreshAttendanceBtn" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm">
+                                            Refresh
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <!-- Data Display -->
                                 <div id="attendanceData" class="space-y-3">
                                     <p class="text-gray-600">Loading data absensi...</p>
                                 </div>
@@ -408,6 +443,10 @@
         // Cache untuk menyimpan data MD
         let registeredMDs = [];
         let isDataLoaded = false;
+
+        // Storage untuk data absensi dan dokumentasi
+        let absensiData = JSON.parse(localStorage.getItem('absensiData') || '[]');
+        let dokumentasiData = JSON.parse(localStorage.getItem('dokumentasiData') || '[]');
 
         // Elements
         const loginPage = document.getElementById('loginPage');
@@ -599,8 +638,6 @@
             }, 3000);
         }
 
-
-
         // Load data saat halaman dimuat
         window.addEventListener('load', function() {
             loadMDData();
@@ -656,6 +693,32 @@
                 if (mdFound) {
                     console.log('✅ Verifikasi berhasil! MD ditemukan:', mdFound);
                     
+                    // Catat absensi otomatis
+                    const absensiRecord = {
+                        id: Date.now(),
+                        nama: mdFound.nama,
+                        branch: mdFound.branch,
+                        tanggal: new Date().toLocaleDateString('id-ID'),
+                        jam: new Date().toLocaleTimeString('id-ID'),
+                        timestamp: new Date().toISOString()
+                    };
+                    
+                    // Cek apakah sudah absen hari ini
+                    const today = new Date().toLocaleDateString('id-ID');
+                    const sudahAbsen = absensiData.some(absen => 
+                        absen.nama === mdFound.nama && 
+                        absen.branch === mdFound.branch && 
+                        absen.tanggal === today
+                    );
+                    
+                    if (!sudahAbsen) {
+                        absensiData.push(absensiRecord);
+                        localStorage.setItem('absensiData', JSON.stringify(absensiData));
+                        console.log('📝 Absensi tercatat:', absensiRecord);
+                    } else {
+                        console.log('ℹ️ MD sudah absen hari ini');
+                    }
+                    
                     // MD ditemukan, tampilkan dashboard
                     welcomeText.textContent = `Selamat Datang, ${mdFound.nama}`;
                     branchText.textContent = `Branch: ${mdFound.branch}`;
@@ -682,6 +745,35 @@
 
         // Handle logout
         logoutBtn.addEventListener('click', function() {
+            // Catat jam keluar sebelum logout
+            const currentMD = JSON.parse(sessionStorage.getItem('currentMD') || '{}');
+            if (currentMD.nama && currentMD.branch) {
+                const today = new Date().toLocaleDateString('id-ID');
+                const jamKeluar = new Date().toLocaleTimeString('id-ID');
+                
+                // Cari data absensi hari ini untuk MD yang sedang login
+                const absenIndex = absensiData.findIndex(absen => 
+                    absen.nama === currentMD.nama && 
+                    absen.branch === currentMD.branch && 
+                    absen.tanggal === today
+                );
+                
+                if (absenIndex !== -1) {
+                    // Update jam keluar dan hitung durasi
+                    absensiData[absenIndex].jamKeluar = jamKeluar;
+                    
+                    // Hitung durasi kerja
+                    const jamMasuk = absensiData[absenIndex].jam;
+                    const durasi = hitungDurasi(jamMasuk, jamKeluar);
+                    absensiData[absenIndex].durasi = durasi;
+                    
+                    // Simpan ke localStorage
+                    localStorage.setItem('absensiData', JSON.stringify(absensiData));
+                    
+                    console.log(`📤 Jam keluar tercatat: ${jamKeluar}, Durasi: ${durasi}`);
+                }
+            }
+            
             loginPage.classList.remove('hidden');
             dashboardPage.classList.add('hidden');
             
@@ -703,6 +795,12 @@
         const adminPassword = document.getElementById('adminPassword');
         const updateJobdeskBtn = document.getElementById('updateJobdeskBtn');
         const refreshAttendanceBtn = document.getElementById('refreshAttendanceBtn');
+        const clearAbsensiBtn = document.getElementById('clearAbsensiBtn');
+        const queryAbsensiBtn = document.getElementById('queryAbsensiBtn');
+        const showTodayBtn = document.getElementById('showTodayBtn');
+        const queryTanggal = document.getElementById('queryTanggal');
+        const queryResultInfo = document.getElementById('queryResultInfo');
+        const exportAbsensiBtn = document.getElementById('exportAbsensiBtn');
         
         // Tab elements
         const tabJobdesk = document.getElementById('tabJobdesk');
@@ -786,6 +884,7 @@
         });
         tabAbsensi.addEventListener('click', () => {
             switchTab(tabAbsensi, contentAbsensi);
+            setDefaultDate(); // Set batas tanggal
             loadAttendanceData();
         });
 
@@ -857,39 +956,219 @@
             });
         }
 
-        // Load attendance data
-        async function loadAttendanceData() {
+        // Load attendance data - DIPERBAIKI dengan Query
+        async function loadAttendanceData(targetDate = null) {
             try {
                 const attendanceDiv = document.getElementById('attendanceData');
                 attendanceDiv.innerHTML = '<p class="text-gray-600">Loading data absensi...</p>';
 
-                // Simulate loading attendance data
-                // In real implementation, this would fetch from your spreadsheet
+                // Tentukan tanggal yang akan ditampilkan
+                const displayDate = targetDate || new Date().toLocaleDateString('id-ID');
+                const filteredAbsensi = absensiData.filter(absen => absen.tanggal === displayDate);
+                
+                // Update info hasil query
+                updateQueryResultInfo(displayDate, filteredAbsensi.length);
+                
                 setTimeout(() => {
-                    const today = new Date().toLocaleDateString('id-ID');
-                    attendanceDiv.innerHTML = `
-                        <div class="text-sm text-gray-600 mb-2">Tanggal: ${today}</div>
-                        <div class="space-y-2">
-                            <div class="bg-white p-3 rounded border">
-                                <div class="font-medium">Ahmad Rizki</div>
-                                <div class="text-sm text-gray-600">Jakarta Pusat - 08:30</div>
+                    if (filteredAbsensi.length === 0) {
+                        attendanceDiv.innerHTML = `
+                            <div class="text-center py-8">
+                                <svg class="w-12 h-12 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                                </svg>
+                                <p class="text-gray-500 font-medium">Tidak ada data absensi</p>
+                                <p class="text-gray-400 text-sm">Untuk tanggal ${displayDate}</p>
                             </div>
-                            <div class="bg-white p-3 rounded border">
-                                <div class="font-medium">Siti Nurhaliza</div>
-                                <div class="text-sm text-gray-600">Jakarta Selatan - 08:45</div>
+                        `;
+                        return;
+                    }
+
+                    // Sort by time (newest first)
+                    filteredAbsensi.sort((a, b) => b.jam.localeCompare(a.jam));
+                    
+                    let absensiHTML = `<div class="space-y-2 max-h-96 overflow-y-auto">`;
+                    
+                    filteredAbsensi.forEach((absen, index) => {
+                        const statusColor = index < 3 ? 'text-green-600' : index < 6 ? 'text-yellow-600' : 'text-red-600';
+                        const statusText = index < 3 ? 'Tepat Waktu' : index < 6 ? 'Terlambat' : 'Sangat Terlambat';
+                        
+                        // Status kehadiran (masih aktif atau sudah keluar)
+                        const isActive = !absen.jamKeluar;
+                        const activeStatus = isActive ? 
+                            '<span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">🟢 Aktif</span>' : 
+                            '<span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">⚫ Selesai</span>';
+                        
+                        absensiHTML += `
+                            <div class="bg-white p-4 rounded-lg border border-gray-200 hover:shadow-sm transition-shadow">
+                                <div class="flex justify-between items-start mb-3">
+                                    <div class="flex-1">
+                                        <div class="font-medium text-gray-900">${absen.nama}</div>
+                                        <div class="text-sm text-gray-600">${absen.branch}</div>
+                                    </div>
+                                    <div class="text-right">
+                                        <span class="text-xs font-medium ${statusColor}">${statusText}</span>
+                                        <div class="text-xs text-gray-400 mt-1">#${absen.id}</div>
+                                    </div>
+                                </div>
+                                
+                                <div class="grid grid-cols-2 gap-4 text-xs">
+                                    <div>
+                                        <span class="font-medium text-gray-700">Masuk:</span>
+                                        <div class="text-gray-600">${absen.jam}</div>
+                                    </div>
+                                    <div>
+                                        <span class="font-medium text-gray-700">Keluar:</span>
+                                        <div class="text-gray-600">${absen.jamKeluar || '-'}</div>
+                                    </div>
+                                </div>
+                                
+                                <div class="flex justify-between items-center mt-3 pt-3 border-t border-gray-100">
+                                    <div class="text-xs">
+                                        <span class="font-medium text-gray-700">Durasi:</span>
+                                        <span class="text-gray-600">${absen.durasi || 'Belum selesai'}</span>
+                                    </div>
+                                    ${activeStatus}
+                                </div>
                             </div>
-                        </div>
-                    `;
-                }, 1000);
+                        `;
+                    });
+                    
+                    absensiHTML += '</div>';
+                    attendanceDiv.innerHTML = absensiHTML;
+                }, 500);
             } catch (error) {
                 console.error('Error loading attendance data:', error);
                 document.getElementById('attendanceData').innerHTML = '<p class="text-red-600">Gagal memuat data absensi</p>';
             }
         }
 
+        // Fungsi untuk update info hasil query
+        function updateQueryResultInfo(tanggal, jumlahHadir) {
+            const isToday = tanggal === new Date().toLocaleDateString('id-ID');
+            const dayLabel = isToday ? 'Hari Ini' : formatTanggalReadable(tanggal);
+            
+            queryResultInfo.innerHTML = `
+                <div class="flex items-center space-x-4">
+                    <span class="font-medium text-gray-700">${dayLabel}</span>
+                    <span class="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-xs font-medium">
+                        ${jumlahHadir} MD Hadir
+                    </span>
+                    ${!isToday ? '<span class="text-xs text-gray-500">(Data Historis)</span>' : ''}
+                </div>
+            `;
+        }
+
+        // Fungsi untuk format tanggal yang mudah dibaca
+        function formatTanggalReadable(tanggalString) {
+            try {
+                const [day, month, year] = tanggalString.split('/');
+                const date = new Date(year, month - 1, day);
+                const options = { 
+                    weekday: 'long', 
+                    year: 'numeric', 
+                    month: 'long', 
+                    day: 'numeric' 
+                };
+                return date.toLocaleDateString('id-ID', options);
+            } catch (error) {
+                return tanggalString;
+            }
+        }
+
+        // Fungsi untuk export data absensi
+        function exportAbsensiData(tanggal) {
+            const filteredData = absensiData.filter(absen => absen.tanggal === tanggal);
+            
+            if (filteredData.length === 0) {
+                showError('Tidak ada data untuk diekspor pada tanggal tersebut!');
+                return;
+            }
+
+            // Buat CSV content
+            let csvContent = "Nama,Branch,Tanggal,Jam Masuk,Jam Keluar,Durasi\n";
+            
+            filteredData.forEach(absen => {
+                csvContent += `"${absen.nama}","${absen.branch}","${absen.tanggal}","${absen.jam}","${absen.jamKeluar || '-'}","${absen.durasi || 'Belum selesai'}"\n`;
+            });
+
+            // Download file
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            link.setAttribute('href', url);
+            link.setAttribute('download', `absensi_${tanggal.replace(/\//g, '-')}.csv`);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            showSuccess(`Data absensi ${tanggal} berhasil diekspor!`);
+        }
+
+        // Query absensi berdasarkan tanggal
+        queryAbsensiBtn.addEventListener('click', function() {
+            const selectedDate = queryTanggal.value;
+            
+            if (!selectedDate) {
+                showError('Silakan pilih tanggal terlebih dahulu!');
+                return;
+            }
+            
+            // Convert dari format YYYY-MM-DD ke DD/MM/YYYY
+            const [year, month, day] = selectedDate.split('-');
+            const formattedDate = `${day}/${month}/${year}`;
+            
+            loadAttendanceData(formattedDate);
+        });
+
+        // Tampilkan data hari ini
+        showTodayBtn.addEventListener('click', function() {
+            queryTanggal.value = ''; // Reset date picker
+            loadAttendanceData(); // Load today's data
+        });
+
+        // Export data absensi
+        exportAbsensiBtn.addEventListener('click', function() {
+            const currentDisplayDate = queryResultInfo.textContent.includes('Hari Ini') ? 
+                new Date().toLocaleDateString('id-ID') : 
+                getCurrentDisplayDate();
+            
+            exportAbsensiData(currentDisplayDate);
+        });
+
+        // Fungsi helper untuk mendapatkan tanggal yang sedang ditampilkan
+        function getCurrentDisplayDate() {
+            const selectedDate = queryTanggal.value;
+            if (selectedDate) {
+                const [year, month, day] = selectedDate.split('-');
+                return `${day}/${month}/${year}`;
+            }
+            return new Date().toLocaleDateString('id-ID');
+        }
+
+        // Set tanggal hari ini sebagai default di date picker
+        function setDefaultDate() {
+            const today = new Date();
+            const year = today.getFullYear();
+            const month = String(today.getMonth() + 1).padStart(2, '0');
+            const day = String(today.getDate()).padStart(2, '0');
+            queryTanggal.max = `${year}-${month}-${day}`; // Tidak bisa pilih tanggal masa depan
+        }
+
         // Refresh attendance data
         refreshAttendanceBtn.addEventListener('click', function() {
-            loadAttendanceData();
+            const currentDate = getCurrentDisplayDate();
+            loadAttendanceData(currentDate);
+        });
+
+        // Clear absensi data
+        clearAbsensiBtn.addEventListener('click', function() {
+            if (confirm('Apakah Anda yakin ingin menghapus semua data absensi? Tindakan ini tidak dapat dibatalkan.')) {
+                absensiData = [];
+                localStorage.setItem('absensiData', JSON.stringify(absensiData));
+                loadAttendanceData();
+                showSuccess('Data absensi berhasil dihapus!');
+            }
         });
 
         // Dokumentasi management functions
@@ -1068,13 +1347,38 @@
             }
         });
 
+        // Fungsi untuk menghitung durasi kerja
+        function hitungDurasi(jamMasuk, jamKeluar) {
+            try {
+                // Parse jam masuk dan keluar
+                const [jamM, menitM, detikM] = jamMasuk.split(':').map(Number);
+                const [jamK, menitK, detikK] = jamKeluar.split(':').map(Number);
+                
+                // Convert ke menit total
+                const totalMenitMasuk = jamM * 60 + menitM;
+                const totalMenitKeluar = jamK * 60 + menitK;
+                
+                // Hitung selisih (handle jika keluar di hari berikutnya)
+                let selisihMenit = totalMenitKeluar - totalMenitMasuk;
+                if (selisihMenit < 0) {
+                    selisihMenit += 24 * 60; // Tambah 24 jam jika negatif
+                }
+                
+                // Convert kembali ke jam dan menit
+                const jam = Math.floor(selisihMenit / 60);
+                const menit = selisihMenit % 60;
+                
+                return `${jam} jam ${menit} menit`;
+            } catch (error) {
+                console.error('Error menghitung durasi:', error);
+                return 'Error';
+            }
+        }
+
         // Make functions global for onclick handlers
         window.editDokumentasi = editDokumentasi;
         window.deleteDokumentasi = deleteDokumentasi;
         window.showImageModal = showImageModal;
-
-        // Storage untuk dokumentasi
-        let dokumentasiData = JSON.parse(localStorage.getItem('dokumentasiData') || '[]');
 
         // Handle dokumentasi submission
         simpanDokumentasi.addEventListener('click', function() {
@@ -1155,5 +1459,5 @@
             });
         });
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'993ac83f9787b5ca',t:'MTc2MTMyMjYyNC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'993aedb6a2db1333',t:'MTc2MTMyNDE1OC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
