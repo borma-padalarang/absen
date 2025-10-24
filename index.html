@@ -3,150 +3,100 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Absensi Md Borma Padalarang</title>
+  <title>Absensi MD Borma Padalarang</title>
   <style>
     body {
-      font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, Arial;
+      font-family: 'Segoe UI', Roboto, Arial, sans-serif;
       margin: 0;
+      background: linear-gradient(135deg, #ffd966 0%, #ff9f1c 100%);
       min-height: 100vh;
       display: flex;
       align-items: center;
       justify-content: center;
-      background: linear-gradient(135deg, #ffd966 0%, #ff9f1c 100%);
     }
     .card {
-      width: 360px;
       background: #fff;
-      padding: 28px;
-      border-radius: 14px;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+      padding: 30px;
+      border-radius: 16px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+      width: 360px;
       text-align: center;
     }
-    h1 {
-      margin: 0 0 12px;
-      color: #ff6b00;
-    }
+    h1 { color: #ff6b00; margin-bottom: 16px; }
     input {
       width: 100%;
-      padding: 10px 12px;
+      padding: 10px;
       margin: 8px 0;
+      border: 1px solid #ddd;
       border-radius: 8px;
-      border: 1px solid #e5e7eb;
-      font-size: 14px;
     }
     button {
-      background: #ff6b00;
-      color: #fff;
-      border: none;
-      padding: 10px 14px;
-      border-radius: 10px;
-      font-weight: 600;
-      cursor: pointer;
-      margin-top: 10px;
       width: 100%;
-    }
-    button:disabled {
-      opacity: 0.6;
-      cursor: not-allowed;
-    }
-    .msg {
-      margin-top: 12px;
-      min-height: 20px;
-      font-size: 14px;
-    }
-    .success {
-      color: #0f5132;
-      background: #d1e7dd;
-      padding: 8px;
+      background: #ff6b00;
+      color: white;
+      border: none;
+      padding: 12px;
       border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
     }
-    .error {
-      color: #842029;
-      background: #f8d7da;
-      padding: 8px;
-      border-radius: 8px;
-    }
-    .loading {
-      color: #0b5ed7;
-    }
-    small {
-      color: #6b7280;
-      display: block;
-      margin-top: 8px;
-    }
+    button:hover { background: #e65c00; }
+    .msg { margin-top: 10px; font-size: 14px; }
+    .success { background: #d1e7dd; color: #0f5132; padding: 10px; border-radius: 8px; }
+    .error { background: #f8d7da; color: #842029; padding: 10px; border-radius: 8px; }
   </style>
 </head>
 <body>
-  <div class="card" role="main">
-    <h1>Absensi Md Borma</h1>
-
+  <div class="card">
+    <h1>Absensi MD Borma</h1>
     <input id="nama" type="text" placeholder="Nama (contoh: SANDI)" />
     <input id="divisi" type="text" placeholder="Divisi (contoh: SNS)" />
-
-    <button id="btnAbsen" onclick="kirimData()">Absen Sekarang</button>
-
-    <div id="message" class="msg" aria-live="polite"></div>
-    <small>Pastikan nama & divisi sesuai daftar (sheet Karyawan).</small>
+    <button onclick="kirimData()">Absen Sekarang</button>
+    <div id="msg" class="msg"></div>
+    <small>Pastikan nama & divisi sesuai data di sheet <b>Karyawan</b>.</small>
   </div>
 
   <script>
-    const scriptURL =
-      "https://script.google.com/macros/s/AKfycbzzYObkcBDM7xcPlB1FhGTjTuXE58pAbyult4ajqj3UgWiTWYos_GXOs9bduAuJQoIh-w/exec";
+    const scriptURL = "https://script.google.com/macros/s/AKfycby8F7DuVXHV4V4PwUset0zWO2QrGWfROhvAvr1IPqzzQ3IhaMKWmFst2YmBN3WQ1V15zg/exec";
 
-    // fungsi global agar bisa diakses dari tombol onclick
-    window.kirimData = async function () {
-      const namaEl = document.getElementById("nama");
-      const divisiEl = document.getElementById("divisi");
-      const msgEl = document.getElementById("message");
-      const btn = document.getElementById("btnAbsen");
+    async function kirimData() {
+      const nama = document.getElementById("nama").value.trim();
+      const divisi = document.getElementById("divisi").value.trim();
+      const msg = document.getElementById("msg");
 
-      const nama = (namaEl.value || "").trim();
-      const divisi = (divisiEl.value || "").trim();
-
-      msgEl.className = "msg";
-      msgEl.textContent = "";
+      msg.className = "msg";
+      msg.textContent = "";
 
       if (!nama || !divisi) {
-        msgEl.classList.add("error");
-        msgEl.textContent = "Nama dan divisi wajib diisi.";
+        msg.classList.add("error");
+        msg.textContent = "Nama dan divisi wajib diisi.";
         return;
       }
 
-      btn.disabled = true;
-      msgEl.classList.add("loading");
-      msgEl.textContent = "Mengirim data...";
+      msg.textContent = "Mengirim data...";
 
       try {
-        const response = await fetch(scriptURL, {
+        const res = await fetch(scriptURL, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ nama, divisi }),
+          body: JSON.stringify({ nama, divisi })
         });
-
-        if (!response.ok) {
-          throw new Error("Gagal koneksi ke server (" + response.status + ")");
-        }
-
-        const data = await response.json();
-        console.log("Response:", data);
+        const data = await res.json();
 
         if (data.status === "success") {
-          msgEl.className = "msg success";
-          msgEl.textContent = "✅ " + (data.message || "Absensi berhasil dicatat!");
-          namaEl.value = "";
-          divisiEl.value = "";
+          msg.className = "msg success";
+          msg.textContent = data.message;
+          document.getElementById("nama").value = "";
+          document.getElementById("divisi").value = "";
         } else {
-          msgEl.className = "msg error";
-          msgEl.textContent = "❌ " + (data.message || "Nama atau divisi salah.");
+          msg.className = "msg error";
+          msg.textContent = data.message;
         }
-      } catch (error) {
-        console.error(error);
-        msgEl.className = "msg error";
-        msgEl.textContent = "🚫 " + error.message;
-      } finally {
-        btn.disabled = false;
+      } catch (err) {
+        msg.className = "msg error";
+        msg.textContent = "Gagal mengirim data: " + err.message;
       }
-    };
+    }
   </script>
 </body>
 </html>
