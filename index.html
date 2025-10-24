@@ -1,51 +1,1159 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Absensi MD</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistem Absensi MD</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            box-sizing: border-box;
+        }
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .slide-up {
+            animation: slideUp 0.3s ease-out;
+        }
+        @keyframes slideUp {
+            from { transform: translateY(100%); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+    </style>
 </head>
-<body>
-<h2>Absensi MD</h2>
-<input type="text" id="nama" placeholder="Nama MD">
-<input type="text" id="branch" placeholder="Branch">
-<button onclick="absen()">Absen</button>
-<div id="message"></div>
+<body class="min-h-full bg-gradient-to-br from-blue-50 to-indigo-100">
+    <div id="app" class="min-h-full">
+        <!-- Halaman Login MD -->
+        <div id="loginPage" class="min-h-full flex items-center justify-center p-4">
+            <div class="bg-white rounded-2xl shadow-xl p-8 w-full max-w-md fade-in">
+                <div class="text-center mb-8">
+                    <div class="bg-indigo-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <svg class="w-8 h-8 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                    </div>
+                    <h1 class="text-2xl font-bold text-gray-900 mb-2">Sistem Absensi MD</h1>
+                    <p class="text-gray-600">Silakan masukkan data untuk verifikasi</p>
+                </div>
 
-<script>
-const scriptURL = "https://script.google.com/macros/s/AKfycbyacNb-8U5ixI4_ypZeHU6OyElvnhGK6X05bSE4vxVj5_um76zEDb9Gq5dXH6jZIeZttw/exec";
+                <form id="absenForm" class="space-y-6">
+                    <div>
+                        <label for="nama" class="block text-sm font-medium text-gray-700 mb-2">Nama MD</label>
+                        <input type="text" id="nama" name="nama" required 
+                               class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
+                               placeholder="Masukkan nama lengkap">
+                    </div>
 
-async function absen() {
-  const nama = document.getElementById("nama").value.trim();
-  const branch = document.getElementById("branch").value.trim();
-  const msg = document.getElementById("message");
+                    <div>
+                        <label for="branch" class="block text-sm font-medium text-gray-700 mb-2">Branch</label>
+                        <input type="text" id="branch" name="branch" required 
+                               class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
+                               placeholder="Masukkan nama branch">
+                    </div>
 
-  if(!nama || !branch) {
-    msg.innerText = "Nama & Branch harus diisi!";
-    return;
-  }
+                    <button type="submit" id="submitBtn"
+                            class="w-full bg-indigo-600 text-white py-3 px-4 rounded-lg hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-colors font-medium">
+                        <span id="submitText">Verifikasi Data</span>
+                        <span id="loadingSpinner" class="hidden">
+                            <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            Memuat...
+                        </span>
+                    </button>
+                </form>
 
-  msg.innerText = "Mengirim data...";
+                <!-- Pesan Error -->
+                <div id="errorMessage" class="hidden mt-4 p-4 bg-red-50 border border-red-200 rounded-lg slide-up">
+                    <div class="flex items-center">
+                        <svg class="w-5 h-5 text-red-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        <p class="text-red-700 font-medium">Data tidak ditemukan !! Silahkan urus surat tugas !!!</p>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-  try {
-    const res = await fetch(scriptURL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ nama, branch })
-    });
-    const data = await res.json();
+        <!-- Halaman Dashboard MD -->
+        <div id="dashboardPage" class="hidden min-h-full">
+            <!-- Header -->
+            <header class="bg-white shadow-sm border-b">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div class="flex justify-between items-center py-4">
+                        <div class="flex items-center">
+                            <div class="bg-indigo-100 w-10 h-10 rounded-full flex items-center justify-center mr-3">
+                                <svg class="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                                </svg>
+                            </div>
+                            <div>
+                                <h1 class="text-xl font-semibold text-gray-900" id="welcomeText">Selamat Datang</h1>
+                                <p class="text-sm text-gray-600" id="branchText">Branch: -</p>
+                            </div>
+                        </div>
+                        <div class="flex space-x-2">
+                            <button id="adminBtn" class="bg-purple-500 text-white px-4 py-2 rounded-lg hover:bg-purple-600 transition-colors">
+                                Admin
+                            </button>
+                            <button id="logoutBtn" class="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-colors">
+                                Keluar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </header>
 
-    if(data.status === "success") {
-      msg.innerText = data.message;
-      // Tampilkan halaman jobdesk / dokumentasi
-      document.body.innerHTML = `<h2>Jobdesk MD</h2><p>Menu dokumentasi di sini...</p>`;
-    } else {
-      msg.innerText = data.message;
-    }
-  } catch(err) {
-    msg.innerText = "Gagal mengirim data: " + err.message;
-  }
-}
-</script>
-</body>
+            <!-- Main Content -->
+            <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <!-- Jobdesk Section -->
+                    <div class="bg-white rounded-xl shadow-lg p-6 fade-in">
+                        <div class="flex items-center mb-6">
+                            <div class="bg-blue-100 w-12 h-12 rounded-lg flex items-center justify-center mr-4">
+                                <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                                </svg>
+                            </div>
+                            <h2 class="text-2xl font-bold text-gray-900">Jobdesk Hari Ini</h2>
+                        </div>
+
+                        <div class="space-y-4">
+                            <div class="border-l-4 border-blue-500 pl-4 py-2">
+                                <h3 class="font-semibold text-gray-900">Kunjungan Nasabah</h3>
+                                <p class="text-gray-600 text-sm">Melakukan kunjungan ke nasabah potensial dan existing</p>
+                                <div class="flex items-center mt-2">
+                                    <input type="checkbox" id="task1" class="mr-2 rounded">
+                                    <label for="task1" class="text-sm text-gray-700">Selesai</label>
+                                </div>
+                            </div>
+
+                            <div class="border-l-4 border-green-500 pl-4 py-2">
+                                <h3 class="font-semibold text-gray-900">Laporan Harian</h3>
+                                <p class="text-gray-600 text-sm">Menyusun dan mengirim laporan aktivitas harian</p>
+                                <div class="flex items-center mt-2">
+                                    <input type="checkbox" id="task2" class="mr-2 rounded">
+                                    <label for="task2" class="text-sm text-gray-700">Selesai</label>
+                                </div>
+                            </div>
+
+                            <div class="border-l-4 border-yellow-500 pl-4 py-2">
+                                <h3 class="font-semibold text-gray-900">Follow Up Prospek</h3>
+                                <p class="text-gray-600 text-sm">Menindaklanjuti prospek yang sudah dikunjungi</p>
+                                <div class="flex items-center mt-2">
+                                    <input type="checkbox" id="task3" class="mr-2 rounded">
+                                    <label for="task3" class="text-sm text-gray-700">Selesai</label>
+                                </div>
+                            </div>
+
+                            <div class="border-l-4 border-purple-500 pl-4 py-2">
+                                <h3 class="font-semibold text-gray-900">Update Data Nasabah</h3>
+                                <p class="text-gray-600 text-sm">Memperbarui database nasabah dan informasi terkini</p>
+                                <div class="flex items-center mt-2">
+                                    <input type="checkbox" id="task4" class="mr-2 rounded">
+                                    <label for="task4" class="text-sm text-gray-700">Selesai</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Dokumentasi Section -->
+                    <div class="bg-white rounded-xl shadow-lg p-6 fade-in">
+                        <div class="flex items-center mb-6">
+                            <div class="bg-green-100 w-12 h-12 rounded-lg flex items-center justify-center mr-4">
+                                <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z"></path>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5a2 2 0 012-2h4a2 2 0 012 2v6H8V5z"></path>
+                                </svg>
+                            </div>
+                            <h2 class="text-2xl font-bold text-gray-900">Dokumentasi</h2>
+                        </div>
+
+                        <div class="space-y-4">
+                            <div class="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors">
+                                <h3 class="font-semibold text-gray-900 mb-2">Upload Foto Kunjungan</h3>
+                                <input type="file" id="fotoKunjungan" accept="image/*" class="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100">
+                                <p class="text-xs text-gray-500 mt-1">Format: JPG, PNG (Max 5MB)</p>
+                            </div>
+
+                            <div class="border border-gray-200 rounded-lg p-4">
+                                <h3 class="font-semibold text-gray-900 mb-2">Catatan Kunjungan</h3>
+                                <textarea id="catatanKunjungan" rows="4" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" placeholder="Tulis catatan detail kunjungan hari ini..."></textarea>
+                            </div>
+
+                            <div class="border border-gray-200 rounded-lg p-4">
+                                <h3 class="font-semibold text-gray-900 mb-2">Lokasi Kunjungan</h3>
+                                <input type="text" id="lokasiKunjungan" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" placeholder="Alamat lengkap lokasi kunjungan">
+                            </div>
+
+                            <button id="simpanDokumentasi" class="w-full bg-green-600 text-white py-3 px-4 rounded-lg hover:bg-green-700 focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-colors font-medium">
+                                Simpan Dokumentasi
+                            </button>
+                        </div>
+
+                        <!-- Status Dokumentasi -->
+                        <div id="statusDokumentasi" class="hidden mt-4 p-4 bg-green-50 border border-green-200 rounded-lg">
+                            <div class="flex items-center">
+                                <svg class="w-5 h-5 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                </svg>
+                                <p class="text-green-700 font-medium">Dokumentasi berhasil disimpan!</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+
+        <!-- Admin Panel Modal -->
+        <div id="adminModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+            <div class="bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+                <div class="p-6 border-b border-gray-200">
+                    <div class="flex justify-between items-center">
+                        <h2 class="text-2xl font-bold text-gray-900">Panel Admin - Kelola Jobdesk</h2>
+                        <button id="closeAdminModal" class="text-gray-400 hover:text-gray-600">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="p-6">
+                    <!-- Password Input -->
+                    <div id="adminPasswordSection" class="mb-6">
+                        <label for="adminPassword" class="block text-sm font-medium text-gray-700 mb-2">Password Admin</label>
+                        <div class="flex space-x-2">
+                            <input type="password" id="adminPassword" class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500" placeholder="Masukkan password admin">
+                            <button id="verifyAdminBtn" class="bg-purple-600 text-white px-6 py-2 rounded-lg hover:bg-purple-700 transition-colors">
+                                Verifikasi
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Admin Content (Hidden until verified) -->
+                    <div id="adminContent" class="hidden">
+                        <!-- Tab Navigation -->
+                        <div class="flex space-x-1 mb-6 bg-gray-100 p-1 rounded-lg">
+                            <button id="tabJobdesk" class="flex-1 py-2 px-4 rounded-md text-sm font-medium bg-white text-purple-600 shadow-sm">
+                                Edit Jobdesk
+                            </button>
+                            <button id="tabDokumentasi" class="flex-1 py-2 px-4 rounded-md text-sm font-medium text-gray-600 hover:text-gray-900">
+                                Kelola Dokumentasi
+                            </button>
+                            <button id="tabAbsensi" class="flex-1 py-2 px-4 rounded-md text-sm font-medium text-gray-600 hover:text-gray-900">
+                                Data Absensi
+                            </button>
+                        </div>
+
+                        <!-- Tab Content: Edit Jobdesk -->
+                        <div id="contentJobdesk" class="tab-content">
+                            <div class="bg-gray-50 rounded-lg p-6">
+                                <h3 class="text-lg font-semibold text-gray-900 mb-4">Edit Jobdesk MD</h3>
+                                <div class="space-y-4">
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-2">Jobdesk 1</label>
+                                        <input type="text" id="jobdesk1Title" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500" value="Kunjungan Nasabah">
+                                        <textarea id="jobdesk1Desc" rows="2" class="w-full mt-2 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500" placeholder="Deskripsi jobdesk">Melakukan kunjungan ke nasabah potensial dan existing</textarea>
+                                    </div>
+                                    
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-2">Jobdesk 2</label>
+                                        <input type="text" id="jobdesk2Title" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500" value="Laporan Harian">
+                                        <textarea id="jobdesk2Desc" rows="2" class="w-full mt-2 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500" placeholder="Deskripsi jobdesk">Menyusun dan mengirim laporan aktivitas harian</textarea>
+                                    </div>
+                                    
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-2">Jobdesk 3</label>
+                                        <input type="text" id="jobdesk3Title" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500" value="Follow Up Prospek">
+                                        <textarea id="jobdesk3Desc" rows="2" class="w-full mt-2 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500" placeholder="Deskripsi jobdesk">Menindaklanjuti prospek yang sudah dikunjungi</textarea>
+                                    </div>
+                                    
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-2">Jobdesk 4</label>
+                                        <input type="text" id="jobdesk4Title" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500" value="Update Data Nasabah">
+                                        <textarea id="jobdesk4Desc" rows="2" class="w-full mt-2 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500" placeholder="Deskripsi jobdesk">Memperbarui database nasabah dan informasi terkini</textarea>
+                                    </div>
+                                    
+                                    <button id="updateJobdeskBtn" class="w-full bg-green-600 text-white py-3 px-4 rounded-lg hover:bg-green-700 transition-colors font-medium">
+                                        Update Jobdesk
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Tab Content: Kelola Dokumentasi -->
+                        <div id="contentDokumentasi" class="tab-content hidden">
+                            <div class="bg-gray-50 rounded-lg p-6">
+                                <div class="flex justify-between items-center mb-4">
+                                    <h3 class="text-lg font-semibold text-gray-900">Kelola Dokumentasi MD</h3>
+                                    <button id="refreshDokumentasiBtn" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                                        Refresh
+                                    </button>
+                                </div>
+                                
+                                <!-- Filter -->
+                                <div class="mb-4 flex space-x-2">
+                                    <select id="filterBranch" class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500">
+                                        <option value="">Semua Branch</option>
+                                    </select>
+                                    <input type="date" id="filterTanggal" class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500">
+                                </div>
+                                
+                                <!-- Dokumentasi List -->
+                                <div id="dokumentasiList" class="space-y-3 max-h-96 overflow-y-auto">
+                                    <p class="text-gray-600">Loading dokumentasi...</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Tab Content: Data Absensi -->
+                        <div id="contentAbsensi" class="tab-content hidden">
+                            <div class="bg-gray-50 rounded-lg p-6">
+                                <div class="flex justify-between items-center mb-4">
+                                    <h3 class="text-lg font-semibold text-gray-900">Data Absensi Hari Ini</h3>
+                                    <button id="refreshAttendanceBtn" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                                        Refresh Data
+                                    </button>
+                                </div>
+                                <div id="attendanceData" class="space-y-3">
+                                    <p class="text-gray-600">Loading data absensi...</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal Edit Dokumentasi -->
+        <div id="editDokumentasiModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+            <div class="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+                <div class="p-6 border-b border-gray-200">
+                    <div class="flex justify-between items-center">
+                        <h2 class="text-xl font-bold text-gray-900">Edit Dokumentasi</h2>
+                        <button id="closeEditModal" class="text-gray-400 hover:text-gray-600">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="p-6">
+                    <form id="editDokumentasiForm" class="space-y-4">
+                        <input type="hidden" id="editDokId">
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Nama MD</label>
+                            <input type="text" id="editNama" class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100" readonly>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Branch</label>
+                            <input type="text" id="editBranch" class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100" readonly>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Tanggal & Jam</label>
+                            <input type="text" id="editTanggalJam" class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100" readonly>
+                        </div>
+                        
+                        <div>
+                            <label for="editCatatan" class="block text-sm font-medium text-gray-700 mb-2">Catatan Kunjungan</label>
+                            <textarea id="editCatatan" rows="4" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"></textarea>
+                        </div>
+                        
+                        <div>
+                            <label for="editLokasi" class="block text-sm font-medium text-gray-700 mb-2">Lokasi Kunjungan</label>
+                            <input type="text" id="editLokasi" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500">
+                        </div>
+                        
+                        <div id="editFotoContainer" class="hidden">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Foto Kunjungan</label>
+                            <img id="editFotoPreview" class="w-full max-w-xs rounded-lg border" alt="Foto Kunjungan">
+                        </div>
+                        
+                        <div class="flex space-x-3 pt-4">
+                            <button type="submit" class="flex-1 bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition-colors">
+                                Simpan Perubahan
+                            </button>
+                            <button type="button" id="cancelEditBtn" class="flex-1 bg-gray-500 text-white py-2 px-4 rounded-lg hover:bg-gray-600 transition-colors">
+                                Batal
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // URL Google Sheets untuk mengambil data langsung
+        const SPREADSHEET_ID = '17pU_5UwX-z6UVaWlXrsqsXDHgj2FFPkFxXNCBBAZc8Y';
+        const SHEET_NAME = 'Sheet1'; // Ganti dengan nama sheet yang sesuai
+        const SHEETS_URL = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:json&sheet=${SHEET_NAME}`;
+        
+        // Apps Script URL untuk mencatat absensi
+        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx7RpeDYqrQyclgc96Tjzb7Ver3hIsjmsfSjr_iW8cPX4DWaTShQHVlanpC09WjumpEvQ/exec';
+        
+        // Admin credentials (ganti dengan password yang Anda inginkan)
+        const ADMIN_PASSWORD = 'admin123';
+        
+        // Cache untuk menyimpan data MD
+        let registeredMDs = [];
+        let isDataLoaded = false;
+
+        // Elements
+        const loginPage = document.getElementById('loginPage');
+        const dashboardPage = document.getElementById('dashboardPage');
+        const absenForm = document.getElementById('absenForm');
+        const errorMessage = document.getElementById('errorMessage');
+        const welcomeText = document.getElementById('welcomeText');
+        const branchText = document.getElementById('branchText');
+        const logoutBtn = document.getElementById('logoutBtn');
+        const simpanDokumentasi = document.getElementById('simpanDokumentasi');
+        const statusDokumentasi = document.getElementById('statusDokumentasi');
+
+        // Fungsi untuk mengambil data langsung dari Google Sheets
+        async function loadMDDataFromSheets() {
+            try {
+                console.log('Mencoba mengambil data langsung dari Google Sheets...');
+                console.log('URL:', SHEETS_URL);
+                
+                const response = await fetch(SHEETS_URL);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const text = await response.text();
+                // Parse Google Sheets JSON response
+                const jsonText = text.substring(47).slice(0, -2); // Remove Google's wrapper
+                const data = JSON.parse(jsonText);
+                
+                console.log('Raw data dari Google Sheets:', data);
+                
+                if (data.table && data.table.rows) {
+                    const rows = data.table.rows;
+                    registeredMDs = [];
+                    
+                    // Skip header row (index 0) dan mulai dari row 1
+                    for (let i = 1; i < rows.length; i++) {
+                        const row = rows[i];
+                        if (row.c && row.c.length >= 2) {
+                            const nama = row.c[0] && row.c[0].v ? row.c[0].v.toString().trim() : '';
+                            const branch = row.c[1] && row.c[1].v ? row.c[1].v.toString().trim() : '';
+                            
+                            if (nama && branch) {
+                                registeredMDs.push({ nama, branch });
+                            }
+                        }
+                    }
+                    
+                    isDataLoaded = true;
+                    console.log('Data MD berhasil dimuat dari Sheets:', registeredMDs.length, 'records');
+                    console.log('Data yang dimuat:', registeredMDs);
+                    showSuccess(`Data berhasil dimuat: ${registeredMDs.length} MD terdaftar`);
+                    return true;
+                } else {
+                    throw new Error('Format data tidak valid dari Google Sheets');
+                }
+            } catch (error) {
+                console.error('Error loading data dari Google Sheets:', error);
+                return false;
+            }
+        }
+
+        // Fungsi untuk mengambil data dari Apps Script (fallback)
+        async function loadMDDataFromAppsScript() {
+            try {
+                console.log('Mencoba mengambil data dari Apps Script:', APPS_SCRIPT_URL);
+                
+                const response = await fetch(APPS_SCRIPT_URL, {
+                    method: 'GET',
+                    mode: 'cors',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                console.log('Response dari Apps Script:', data);
+                
+                if (data && data.success && Array.isArray(data.data)) {
+                    registeredMDs = data.data;
+                    isDataLoaded = true;
+                    console.log('Data MD berhasil dimuat dari Apps Script:', registeredMDs.length, 'records');
+                    showSuccess(`Data berhasil dimuat: ${registeredMDs.length} MD terdaftar`);
+                    return true;
+                } else {
+                    throw new Error(data.message || 'Format data tidak valid');
+                }
+            } catch (error) {
+                console.error('Error loading MD data dari Apps Script:', error);
+                return false;
+            }
+        }
+
+        // Fungsi untuk verifikasi data MD
+        function verifyMDData(nama, branch) {
+            console.log('Memverifikasi data MD...');
+            console.log('Input - Nama:', `"${nama}"`, 'Branch:', `"${branch}"`);
+            
+            const mdFound = registeredMDs.find(md => {
+                if (!md.nama || !md.branch) {
+                    return false;
+                }
+                
+                const namaMatch = md.nama.toLowerCase().trim() === nama.toLowerCase();
+                const branchMatch = md.branch.toLowerCase().trim() === branch.toLowerCase();
+                
+                console.log(`Checking: "${md.nama}" vs "${nama}" = ${namaMatch}`);
+                console.log(`Checking: "${md.branch}" vs "${branch}" = ${branchMatch}`);
+                
+                return namaMatch && branchMatch;
+            });
+            
+            return mdFound;
+        }
+
+        // Fungsi utama untuk mengambil data (coba Sheets dulu, lalu Apps Script)
+        async function loadMDData() {
+            try {
+                // Coba ambil data langsung dari Google Sheets dulu
+                const sheetsSuccess = await loadMDDataFromSheets();
+                
+                if (!sheetsSuccess) {
+                    console.log('Gagal dari Sheets, mencoba Apps Script...');
+                    const appsScriptSuccess = await loadMDDataFromAppsScript();
+                    
+                    if (!appsScriptSuccess) {
+                        throw new Error('Gagal mengambil data dari kedua sumber');
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading MD data:', error);
+                
+                // Gunakan data fallback untuk testing
+                registeredMDs = [
+                    { nama: "Ahmad Rizki", branch: "Jakarta Pusat" },
+                    { nama: "Siti Nurhaliza", branch: "Jakarta Selatan" },
+                    { nama: "Budi Santoso", branch: "Jakarta Utara" },
+                    { nama: "Maya Sari", branch: "Jakarta Barat" },
+                    { nama: "Test User", branch: "Bandung" }
+                ];
+                isDataLoaded = true;
+                
+                showError('Menggunakan data demo. Periksa koneksi ke spreadsheet Anda.');
+                console.log('Menggunakan data fallback:', registeredMDs);
+            }
+        }
+
+        // Fungsi untuk menampilkan pesan error
+        function showError(message) {
+            const errorDiv = document.getElementById('errorMessage');
+            const errorText = errorDiv.querySelector('p');
+            errorText.textContent = message;
+            errorDiv.classList.remove('hidden');
+            
+            setTimeout(() => {
+                errorDiv.classList.add('hidden');
+            }, 5000);
+        }
+
+        // Fungsi untuk menampilkan pesan sukses
+        function showSuccess(message) {
+            // Buat elemen sukses jika belum ada
+            let successDiv = document.getElementById('successMessage');
+            if (!successDiv) {
+                successDiv = document.createElement('div');
+                successDiv.id = 'successMessage';
+                successDiv.className = 'hidden mt-4 p-4 bg-green-50 border border-green-200 rounded-lg slide-up';
+                successDiv.innerHTML = `
+                    <div class="flex items-center">
+                        <svg class="w-5 h-5 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                        </svg>
+                        <p class="text-green-700 font-medium">${message}</p>
+                    </div>
+                `;
+                absenForm.parentNode.appendChild(successDiv);
+            } else {
+                successDiv.querySelector('p').textContent = message;
+            }
+            
+            successDiv.classList.remove('hidden');
+            
+            setTimeout(() => {
+                successDiv.classList.add('hidden');
+            }, 3000);
+        }
+
+
+
+        // Load data saat halaman dimuat
+        window.addEventListener('load', function() {
+            loadMDData();
+        });
+
+        // Fungsi untuk mengatur loading state
+        function setLoadingState(isLoading) {
+            const submitBtn = document.getElementById('submitBtn');
+            const submitText = document.getElementById('submitText');
+            const loadingSpinner = document.getElementById('loadingSpinner');
+            
+            if (isLoading) {
+                submitBtn.disabled = true;
+                submitText.classList.add('hidden');
+                loadingSpinner.classList.remove('hidden');
+            } else {
+                submitBtn.disabled = false;
+                submitText.classList.remove('hidden');
+                loadingSpinner.classList.add('hidden');
+            }
+        }
+
+        // Handle form submission
+        absenForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const nama = document.getElementById('nama').value.trim();
+            const branch = document.getElementById('branch').value.trim();
+            
+            console.log('Input yang dimasukkan:');
+            console.log('- Nama:', `"${nama}"`);
+            console.log('- Branch:', `"${branch}"`);
+            
+            setLoadingState(true);
+            
+            try {
+                // Cek apakah data sudah dimuat
+                if (!isDataLoaded) {
+                    await loadMDData();
+                    if (!isDataLoaded) {
+                        return;
+                    }
+                }
+                
+                console.log('Data yang tersedia di spreadsheet:');
+                registeredMDs.forEach((md, index) => {
+                    console.log(`${index + 1}. Nama: "${md.nama}" | Branch: "${md.branch}"`);
+                });
+                
+                // Verifikasi data MD
+                const mdFound = verifyMDData(nama, branch);
+                
+                if (mdFound) {
+                    console.log('✅ Verifikasi berhasil! MD ditemukan:', mdFound);
+                    
+                    // MD ditemukan, tampilkan dashboard
+                    welcomeText.textContent = `Selamat Datang, ${mdFound.nama}`;
+                    branchText.textContent = `Branch: ${mdFound.branch}`;
+                    
+                    // Simpan data MD yang sedang login
+                    sessionStorage.setItem('currentMD', JSON.stringify(mdFound));
+                    
+                    loginPage.classList.add('hidden');
+                    dashboardPage.classList.remove('hidden');
+                    
+                    // Reset error message
+                    errorMessage.classList.add('hidden');
+                    
+                    showSuccess('Verifikasi berhasil! Selamat bekerja.');
+                } else {
+                    console.log('❌ Verifikasi gagal! MD tidak ditemukan dalam database');
+                    // MD tidak ditemukan, tampilkan pesan error
+                    showError('Data tidak ditemukan !! Silahkan urus surat tugas !!!');
+                }
+            } finally {
+                setLoadingState(false);
+            }
+        });
+
+        // Handle logout
+        logoutBtn.addEventListener('click', function() {
+            loginPage.classList.remove('hidden');
+            dashboardPage.classList.add('hidden');
+            
+            // Clear session data
+            sessionStorage.removeItem('currentMD');
+            
+            // Reset form
+            absenForm.reset();
+            errorMessage.classList.add('hidden');
+        });
+
+        // Admin Panel Functions
+        const adminBtn = document.getElementById('adminBtn');
+        const adminModal = document.getElementById('adminModal');
+        const closeAdminModal = document.getElementById('closeAdminModal');
+        const adminPasswordSection = document.getElementById('adminPasswordSection');
+        const adminContent = document.getElementById('adminContent');
+        const verifyAdminBtn = document.getElementById('verifyAdminBtn');
+        const adminPassword = document.getElementById('adminPassword');
+        const updateJobdeskBtn = document.getElementById('updateJobdeskBtn');
+        const refreshAttendanceBtn = document.getElementById('refreshAttendanceBtn');
+        
+        // Tab elements
+        const tabJobdesk = document.getElementById('tabJobdesk');
+        const tabDokumentasi = document.getElementById('tabDokumentasi');
+        const tabAbsensi = document.getElementById('tabAbsensi');
+        const contentJobdesk = document.getElementById('contentJobdesk');
+        const contentDokumentasi = document.getElementById('contentDokumentasi');
+        const contentAbsensi = document.getElementById('contentAbsensi');
+        
+        // Dokumentasi elements
+        const refreshDokumentasiBtn = document.getElementById('refreshDokumentasiBtn');
+        const filterBranch = document.getElementById('filterBranch');
+        const filterTanggal = document.getElementById('filterTanggal');
+        const dokumentasiList = document.getElementById('dokumentasiList');
+        
+        // Edit modal elements
+        const editDokumentasiModal = document.getElementById('editDokumentasiModal');
+        const closeEditModal = document.getElementById('closeEditModal');
+        const editDokumentasiForm = document.getElementById('editDokumentasiForm');
+        const cancelEditBtn = document.getElementById('cancelEditBtn');
+
+        // Show admin modal
+        adminBtn.addEventListener('click', function() {
+            adminModal.classList.remove('hidden');
+            adminPasswordSection.classList.remove('hidden');
+            adminContent.classList.add('hidden');
+            adminPassword.value = '';
+        });
+
+        // Close admin modal
+        closeAdminModal.addEventListener('click', function() {
+            adminModal.classList.add('hidden');
+        });
+
+        // Close modal when clicking outside
+        adminModal.addEventListener('click', function(e) {
+            if (e.target === adminModal) {
+                adminModal.classList.add('hidden');
+            }
+        });
+
+        // Verify admin password
+        verifyAdminBtn.addEventListener('click', function() {
+            const password = adminPassword.value;
+            if (password === ADMIN_PASSWORD) {
+                adminPasswordSection.classList.add('hidden');
+                adminContent.classList.remove('hidden');
+                loadAttendanceData();
+                loadDokumentasiData();
+                populateBranchFilter();
+                showSuccess('Login admin berhasil!');
+            } else {
+                showError('Password admin salah!');
+                adminPassword.value = '';
+            }
+        });
+
+        // Tab switching
+        function switchTab(activeTab, activeContent) {
+            // Reset all tabs
+            [tabJobdesk, tabDokumentasi, tabAbsensi].forEach(tab => {
+                tab.classList.remove('bg-white', 'text-purple-600', 'shadow-sm');
+                tab.classList.add('text-gray-600');
+            });
+            
+            // Reset all content
+            [contentJobdesk, contentDokumentasi, contentAbsensi].forEach(content => {
+                content.classList.add('hidden');
+            });
+            
+            // Activate selected tab
+            activeTab.classList.add('bg-white', 'text-purple-600', 'shadow-sm');
+            activeTab.classList.remove('text-gray-600');
+            activeContent.classList.remove('hidden');
+        }
+
+        tabJobdesk.addEventListener('click', () => switchTab(tabJobdesk, contentJobdesk));
+        tabDokumentasi.addEventListener('click', () => {
+            switchTab(tabDokumentasi, contentDokumentasi);
+            loadDokumentasiData();
+        });
+        tabAbsensi.addEventListener('click', () => {
+            switchTab(tabAbsensi, contentAbsensi);
+            loadAttendanceData();
+        });
+
+        // Handle Enter key in password field
+        adminPassword.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                verifyAdminBtn.click();
+            }
+        });
+
+        // Update jobdesk
+        updateJobdeskBtn.addEventListener('click', function() {
+            const jobdesks = [
+                {
+                    title: document.getElementById('jobdesk1Title').value,
+                    desc: document.getElementById('jobdesk1Desc').value,
+                    color: 'blue'
+                },
+                {
+                    title: document.getElementById('jobdesk2Title').value,
+                    desc: document.getElementById('jobdesk2Desc').value,
+                    color: 'green'
+                },
+                {
+                    title: document.getElementById('jobdesk3Title').value,
+                    desc: document.getElementById('jobdesk3Desc').value,
+                    color: 'yellow'
+                },
+                {
+                    title: document.getElementById('jobdesk4Title').value,
+                    desc: document.getElementById('jobdesk4Desc').value,
+                    color: 'purple'
+                }
+            ];
+
+            updateJobdeskDisplay(jobdesks);
+            showSuccess('Jobdesk berhasil diupdate!');
+        });
+
+        // Function to update jobdesk display
+        function updateJobdeskDisplay(jobdesks) {
+            const jobdeskContainer = document.querySelector('.space-y-4');
+            jobdeskContainer.innerHTML = '';
+
+            jobdesks.forEach((jobdesk, index) => {
+                const jobdeskElement = document.createElement('div');
+                jobdeskElement.className = `border-l-4 border-${jobdesk.color}-500 pl-4 py-2`;
+                jobdeskElement.innerHTML = `
+                    <h3 class="font-semibold text-gray-900">${jobdesk.title}</h3>
+                    <p class="text-gray-600 text-sm">${jobdesk.desc}</p>
+                    <div class="flex items-center mt-2">
+                        <input type="checkbox" id="task${index + 1}" class="mr-2 rounded">
+                        <label for="task${index + 1}" class="text-sm text-gray-700">Selesai</label>
+                    </div>
+                `;
+                jobdeskContainer.appendChild(jobdeskElement);
+            });
+
+            // Re-attach checkbox event listeners
+            document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+                checkbox.addEventListener('change', function() {
+                    const label = this.nextElementSibling;
+                    if (this.checked) {
+                        label.classList.add('line-through', 'text-gray-400');
+                    } else {
+                        label.classList.remove('line-through', 'text-gray-400');
+                    }
+                });
+            });
+        }
+
+        // Load attendance data
+        async function loadAttendanceData() {
+            try {
+                const attendanceDiv = document.getElementById('attendanceData');
+                attendanceDiv.innerHTML = '<p class="text-gray-600">Loading data absensi...</p>';
+
+                // Simulate loading attendance data
+                // In real implementation, this would fetch from your spreadsheet
+                setTimeout(() => {
+                    const today = new Date().toLocaleDateString('id-ID');
+                    attendanceDiv.innerHTML = `
+                        <div class="text-sm text-gray-600 mb-2">Tanggal: ${today}</div>
+                        <div class="space-y-2">
+                            <div class="bg-white p-3 rounded border">
+                                <div class="font-medium">Ahmad Rizki</div>
+                                <div class="text-sm text-gray-600">Jakarta Pusat - 08:30</div>
+                            </div>
+                            <div class="bg-white p-3 rounded border">
+                                <div class="font-medium">Siti Nurhaliza</div>
+                                <div class="text-sm text-gray-600">Jakarta Selatan - 08:45</div>
+                            </div>
+                        </div>
+                    `;
+                }, 1000);
+            } catch (error) {
+                console.error('Error loading attendance data:', error);
+                document.getElementById('attendanceData').innerHTML = '<p class="text-red-600">Gagal memuat data absensi</p>';
+            }
+        }
+
+        // Refresh attendance data
+        refreshAttendanceBtn.addEventListener('click', function() {
+            loadAttendanceData();
+        });
+
+        // Dokumentasi management functions
+        function populateBranchFilter() {
+            const branches = [...new Set(registeredMDs.map(md => md.branch))];
+            filterBranch.innerHTML = '<option value="">Semua Branch</option>';
+            branches.forEach(branch => {
+                const option = document.createElement('option');
+                option.value = branch;
+                option.textContent = branch;
+                filterBranch.appendChild(option);
+            });
+        }
+
+        function loadDokumentasiData() {
+            const filterBranchValue = filterBranch.value;
+            const filterTanggalValue = filterTanggal.value;
+            
+            let filteredData = [...dokumentasiData];
+            
+            // Filter by branch
+            if (filterBranchValue) {
+                filteredData = filteredData.filter(dok => dok.branch === filterBranchValue);
+            }
+            
+            // Filter by date
+            if (filterTanggalValue) {
+                const filterDate = new Date(filterTanggalValue).toLocaleDateString('id-ID');
+                filteredData = filteredData.filter(dok => dok.tanggal === filterDate);
+            }
+            
+            // Sort by newest first
+            filteredData.sort((a, b) => b.id - a.id);
+            
+            if (filteredData.length === 0) {
+                dokumentasiList.innerHTML = '<p class="text-gray-600">Tidak ada dokumentasi ditemukan.</p>';
+                return;
+            }
+            
+            dokumentasiList.innerHTML = '';
+            filteredData.forEach(dok => {
+                const dokElement = document.createElement('div');
+                dokElement.className = 'bg-white p-4 rounded-lg border border-gray-200 hover:shadow-md transition-shadow';
+                dokElement.innerHTML = `
+                    <div class="flex justify-between items-start mb-3">
+                        <div>
+                            <h4 class="font-semibold text-gray-900">${dok.nama}</h4>
+                            <p class="text-sm text-gray-600">${dok.branch} • ${dok.tanggal} ${dok.jam}</p>
+                        </div>
+                        <div class="flex space-x-2">
+                            <button onclick="editDokumentasi(${dok.id})" class="text-blue-600 hover:text-blue-800 text-sm font-medium">
+                                Edit
+                            </button>
+                            <button onclick="deleteDokumentasi(${dok.id})" class="text-red-600 hover:text-red-800 text-sm font-medium">
+                                Hapus
+                            </button>
+                        </div>
+                    </div>
+                    <div class="space-y-2">
+                        <div>
+                            <span class="text-sm font-medium text-gray-700">Lokasi:</span>
+                            <span class="text-sm text-gray-600">${dok.lokasi}</span>
+                        </div>
+                        <div>
+                            <span class="text-sm font-medium text-gray-700">Catatan:</span>
+                            <p class="text-sm text-gray-600 mt-1">${dok.catatan}</p>
+                        </div>
+                        ${dok.fotoData ? `
+                            <div>
+                                <span class="text-sm font-medium text-gray-700">Foto:</span>
+                                <img src="${dok.fotoData}" alt="Foto Kunjungan" class="mt-1 w-32 h-24 object-cover rounded border cursor-pointer" onclick="showImageModal('${dok.fotoData}')">
+                            </div>
+                        ` : ''}
+                    </div>
+                `;
+                dokumentasiList.appendChild(dokElement);
+            });
+        }
+
+        function editDokumentasi(id) {
+            const dok = dokumentasiData.find(d => d.id === id);
+            if (!dok) return;
+            
+            document.getElementById('editDokId').value = dok.id;
+            document.getElementById('editNama').value = dok.nama;
+            document.getElementById('editBranch').value = dok.branch;
+            document.getElementById('editTanggalJam').value = `${dok.tanggal} ${dok.jam}`;
+            document.getElementById('editCatatan').value = dok.catatan;
+            document.getElementById('editLokasi').value = dok.lokasi;
+            
+            const fotoContainer = document.getElementById('editFotoContainer');
+            const fotoPreview = document.getElementById('editFotoPreview');
+            
+            if (dok.fotoData) {
+                fotoPreview.src = dok.fotoData;
+                fotoContainer.classList.remove('hidden');
+            } else {
+                fotoContainer.classList.add('hidden');
+            }
+            
+            editDokumentasiModal.classList.remove('hidden');
+        }
+
+        function deleteDokumentasi(id) {
+            if (confirm('Apakah Anda yakin ingin menghapus dokumentasi ini?')) {
+                dokumentasiData = dokumentasiData.filter(d => d.id !== id);
+                localStorage.setItem('dokumentasiData', JSON.stringify(dokumentasiData));
+                loadDokumentasiData();
+                showSuccess('Dokumentasi berhasil dihapus!');
+            }
+        }
+
+        function showImageModal(imageSrc) {
+            const modal = document.createElement('div');
+            modal.className = 'fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center p-4 z-50';
+            modal.innerHTML = `
+                <div class="relative max-w-4xl max-h-full">
+                    <img src="${imageSrc}" alt="Foto Kunjungan" class="max-w-full max-h-full rounded-lg">
+                    <button onclick="this.parentElement.parentElement.remove()" class="absolute top-4 right-4 text-white bg-black bg-opacity-50 rounded-full p-2 hover:bg-opacity-75">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+            `;
+            document.body.appendChild(modal);
+            
+            modal.addEventListener('click', function(e) {
+                if (e.target === modal) {
+                    modal.remove();
+                }
+            });
+        }
+
+        // Event listeners for dokumentasi
+        refreshDokumentasiBtn.addEventListener('click', loadDokumentasiData);
+        filterBranch.addEventListener('change', loadDokumentasiData);
+        filterTanggal.addEventListener('change', loadDokumentasiData);
+
+        // Edit modal event listeners
+        closeEditModal.addEventListener('click', () => {
+            editDokumentasiModal.classList.add('hidden');
+        });
+
+        cancelEditBtn.addEventListener('click', () => {
+            editDokumentasiModal.classList.add('hidden');
+        });
+
+        editDokumentasiModal.addEventListener('click', function(e) {
+            if (e.target === editDokumentasiModal) {
+                editDokumentasiModal.classList.add('hidden');
+            }
+        });
+
+        editDokumentasiForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const id = parseInt(document.getElementById('editDokId').value);
+            const catatan = document.getElementById('editCatatan').value.trim();
+            const lokasi = document.getElementById('editLokasi').value.trim();
+            
+            if (!catatan || !lokasi) {
+                showError('Harap isi semua field yang diperlukan!');
+                return;
+            }
+            
+            const dokIndex = dokumentasiData.findIndex(d => d.id === id);
+            if (dokIndex !== -1) {
+                dokumentasiData[dokIndex].catatan = catatan;
+                dokumentasiData[dokIndex].lokasi = lokasi;
+                localStorage.setItem('dokumentasiData', JSON.stringify(dokumentasiData));
+                
+                editDokumentasiModal.classList.add('hidden');
+                loadDokumentasiData();
+                showSuccess('Dokumentasi berhasil diupdate!');
+            }
+        });
+
+        // Make functions global for onclick handlers
+        window.editDokumentasi = editDokumentasi;
+        window.deleteDokumentasi = deleteDokumentasi;
+        window.showImageModal = showImageModal;
+
+        // Storage untuk dokumentasi
+        let dokumentasiData = JSON.parse(localStorage.getItem('dokumentasiData') || '[]');
+
+        // Handle dokumentasi submission
+        simpanDokumentasi.addEventListener('click', function() {
+            const catatan = document.getElementById('catatanKunjungan').value.trim();
+            const lokasi = document.getElementById('lokasiKunjungan').value.trim();
+            const foto = document.getElementById('fotoKunjungan').files[0];
+            
+            if (catatan && lokasi) {
+                // Ambil data MD yang sedang login
+                const currentMD = JSON.parse(sessionStorage.getItem('currentMD') || '{}');
+                
+                // Buat objek dokumentasi
+                const dokumentasi = {
+                    id: Date.now(),
+                    nama: currentMD.nama || 'Unknown',
+                    branch: currentMD.branch || 'Unknown',
+                    tanggal: new Date().toLocaleDateString('id-ID'),
+                    jam: new Date().toLocaleTimeString('id-ID'),
+                    catatan: catatan,
+                    lokasi: lokasi,
+                    foto: foto ? foto.name : null,
+                    fotoData: null
+                };
+                
+                // Jika ada foto, convert ke base64
+                if (foto) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        dokumentasi.fotoData = e.target.result;
+                        // Simpan dokumentasi
+                        dokumentasiData.push(dokumentasi);
+                        localStorage.setItem('dokumentasiData', JSON.stringify(dokumentasiData));
+                        
+                        statusDokumentasi.classList.remove('hidden');
+                        
+                        // Reset form dokumentasi
+                        document.getElementById('catatanKunjungan').value = '';
+                        document.getElementById('lokasiKunjungan').value = '';
+                        document.getElementById('fotoKunjungan').value = '';
+                        
+                        // Hide status after 3 seconds
+                        setTimeout(() => {
+                            statusDokumentasi.classList.add('hidden');
+                        }, 3000);
+                    };
+                    reader.readAsDataURL(foto);
+                } else {
+                    // Simpan dokumentasi tanpa foto
+                    dokumentasiData.push(dokumentasi);
+                    localStorage.setItem('dokumentasiData', JSON.stringify(dokumentasiData));
+                    
+                    statusDokumentasi.classList.remove('hidden');
+                    
+                    // Reset form dokumentasi
+                    document.getElementById('catatanKunjungan').value = '';
+                    document.getElementById('lokasiKunjungan').value = '';
+                    document.getElementById('fotoKunjungan').value = '';
+                    
+                    // Hide status after 3 seconds
+                    setTimeout(() => {
+                        statusDokumentasi.classList.add('hidden');
+                    }, 3000);
+                }
+            } else {
+                showError('Harap isi catatan dan lokasi kunjungan!');
+            }
+        });
+
+        // Handle task checkboxes
+        document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+            checkbox.addEventListener('change', function() {
+                const label = this.nextElementSibling;
+                if (this.checked) {
+                    label.classList.add('line-through', 'text-gray-400');
+                } else {
+                    label.classList.remove('line-through', 'text-gray-400');
+                }
+            });
+        });
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'993ac83f9787b5ca',t:'MTc2MTMyMjYyNC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
