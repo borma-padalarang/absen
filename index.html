@@ -217,6 +217,75 @@
             </main>
         </div>
 
+        <!-- Halaman Terima Kasih -->
+        <div id="thankYouPage" class="hidden min-h-full flex items-center justify-center p-4">
+            <div class="bg-white rounded-3xl shadow-2xl p-12 w-full max-w-2xl text-center fade-in">
+                <!-- Header dengan Icon -->
+                <div class="mb-8">
+                    <div class="bg-gradient-to-r from-green-400 to-blue-500 w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
+                        <svg class="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                        </svg>
+                    </div>
+                    <h1 class="text-4xl font-bold text-gray-800 mb-4">Terima Kasih!</h1>
+                </div>
+
+                <!-- Informasi MD -->
+                <div class="mb-8">
+                    <p class="text-xl text-gray-700 mb-2">
+                        <span class="font-semibold text-indigo-600" id="thankYouNama">Nama MD</span>
+                    </p>
+                    <p class="text-lg text-gray-600 mb-4">
+                        dari <span class="font-medium text-blue-600" id="thankYouBranch">Branch</span>
+                    </p>
+                    <p class="text-base text-gray-500">
+                        Hari ini, <span class="font-medium" id="thankYouTanggal">Tanggal</span>
+                    </p>
+                </div>
+
+                <!-- Pesan Utama -->
+                <div class="mb-10">
+                    <p class="text-lg text-gray-700 leading-relaxed">
+                        Anda sudah bekerja sama dengan 
+                        <span class="font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-600">
+                            Borma Padalarang
+                        </span>
+                    </p>
+                </div>
+
+                <!-- Durasi Kerja - Highlight Utama -->
+                <div class="mb-10">
+                    <div class="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl p-8 border border-blue-100">
+                        <p class="text-lg text-gray-600 mb-4">Anda bergabung dengan durasi waktu</p>
+                        <div class="text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 mb-2" id="thankYouDurasi">
+                            00:00:00
+                        </div>
+                        <p class="text-sm text-gray-500 uppercase tracking-wider font-medium">Jam : Menit : Detik</p>
+                    </div>
+                </div>
+
+                <!-- Pesan Penutup -->
+                <div class="mb-8">
+                    <div class="bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl p-6 border border-green-100">
+                        <p class="text-green-700 font-medium text-lg">
+                            🎉 Kerja bagus hari ini! 
+                        </p>
+                        <p class="text-green-600 text-sm mt-2">
+                            Semua jobdesk telah terdokumentasi dengan baik
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Tombol Kembali -->
+                <button id="backToLoginBtn" class="bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-8 py-4 rounded-xl hover:from-indigo-700 hover:to-purple-700 transition-all duration-300 font-semibold text-lg shadow-lg transform hover:scale-105">
+                    <svg class="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+                    </svg>
+                    Kembali ke Halaman Login
+                </button>
+            </div>
+        </div>
+
         <!-- Halaman Dashboard Admin -->
         <div id="adminDashboardPage" class="hidden min-h-full">
             <!-- Header Admin -->
@@ -420,7 +489,7 @@
     <div class="fixed bottom-4 right-4 z-40 pointer-events-none">
         <div class="bg-black bg-opacity-20 backdrop-blur-sm px-3 py-1 rounded-lg">
             <p class="text-white text-xs font-medium opacity-80 select-none">
-                release october 2025 
+                created by sami_media 2025
             </p>
         </div>
     </div>
@@ -436,8 +505,8 @@
         const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz1t9RxomAcgh5LvyeAj9pZtGIfOsPch1kpXpbyIOkpK76aWCNAXnyed7zVPqd7oNy_xw/exec';
         
         // Admin credentials
-        const ADMIN_USERNAME = 'root';
-        const ADMIN_PASSWORD = 'z';
+        const ADMIN_USERNAME = 'admin';
+        const ADMIN_PASSWORD = 'admin123';
         
         // Fixed Jobdesk Data (tidak dapat diubah kecuali melalui code)
         const FIXED_JOBDESK = [
@@ -489,6 +558,7 @@
         const adminLoginPage = document.getElementById('adminLoginPage');
         const dashboardPage = document.getElementById('dashboardPage');
         const adminDashboardPage = document.getElementById('adminDashboardPage');
+        const thankYouPage = document.getElementById('thankYouPage');
         const absenForm = document.getElementById('absenForm');
         const adminLoginForm = document.getElementById('adminLoginForm');
         const errorMessage = document.getElementById('errorMessage');
@@ -754,10 +824,43 @@
                 
                 // Save logout attendance to Google Sheets IMMEDIATELY
                 saveAttendanceToSheets('logout');
+                
+                // Show thank you page with work duration
+                showThankYouPage(durationText);
+                
                 console.log('✅ Tracking waktu kerja dihentikan untuk:', currentMD.nama);
             }
             
             currentLoginTime = null;
+        }
+        
+        // Fungsi untuk menampilkan halaman terima kasih
+        function showThankYouPage(workDuration) {
+            console.log('🎉 Menampilkan halaman terima kasih...');
+            
+            // Update informasi di halaman terima kasih
+            document.getElementById('thankYouNama').textContent = currentMD.nama;
+            document.getElementById('thankYouBranch').textContent = currentMD.branch;
+            
+            // Format tanggal hari ini dalam bahasa Indonesia
+            const today = new Date();
+            const options = { 
+                weekday: 'long', 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric' 
+            };
+            const formattedDate = today.toLocaleDateString('id-ID', options);
+            document.getElementById('thankYouTanggal').textContent = formattedDate;
+            
+            // Tampilkan durasi kerja dengan format yang elegan
+            document.getElementById('thankYouDurasi').textContent = workDuration;
+            
+            // Sembunyikan dashboard dan tampilkan halaman terima kasih
+            dashboardPage.classList.add('hidden');
+            thankYouPage.classList.remove('hidden');
+            
+            console.log('✅ Halaman terima kasih ditampilkan dengan durasi:', workDuration);
         }
         
         // Fungsi untuk format durasi dalam jam:menit:detik
@@ -1586,11 +1689,10 @@
 
         // Handle logout
         logoutBtn.addEventListener('click', function() {
-            // Stop tracking waktu kerja
+            // Stop tracking waktu kerja (ini akan menampilkan halaman terima kasih)
             stopWorkDurationTracking();
             
-            loginPage.classList.remove('hidden');
-            dashboardPage.classList.add('hidden');
+            // Reset session data
             sessionStorage.removeItem('currentMD');
             absenForm.reset();
             errorMessage.classList.add('hidden');
@@ -1802,11 +1904,21 @@
             document.getElementById('contentDokumentasi').classList.add('hidden');
         });
 
+        // Handle back to login button dari halaman terima kasih
+        document.getElementById('backToLoginBtn').addEventListener('click', function() {
+            thankYouPage.classList.add('hidden');
+            loginPage.classList.remove('hidden');
+            
+            // Reset form dan state
+            absenForm.reset();
+            errorMessage.classList.add('hidden');
+            
+            showSuccess('✅ Siap untuk login MD berikutnya!');
+        });
+
         // Make functions global for onclick handlers
         window.toggleJobdesk = toggleJobdesk;
         window.openDokumentasiModal = openDokumentasiModal;
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'994324522296e8a2',t:'MTc2MTQxMDI4MS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'99434051a068a038',t:'MTc2MTQxMTQyOC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
-
-
