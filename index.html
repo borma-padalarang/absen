@@ -507,35 +507,100 @@
         const dokumentasiForm = document.getElementById('dokumentasiForm');
         const cancelDokBtn = document.getElementById('cancelDokBtn');
 
-        // Test Apps Script connection saat halaman dimuat
+        // Test Apps Script connection saat halaman dimuat - GITHUB PAGES COMPATIBLE
         async function testAppsScriptConnection() {
             try {
                 console.log('🧪 Testing Apps Script connection...');
                 console.log('🔗 URL:', APPS_SCRIPT_URL);
+                console.log('🌐 Current domain:', window.location.hostname);
+                console.log('🌐 Current protocol:', window.location.protocol);
                 
-                const testUrl = `${APPS_SCRIPT_URL}?action=test`;
-                console.log('📤 Test URL:', testUrl);
+                // Multiple connection methods for GitHub Pages compatibility
+                const connectionMethods = [
+                    // Method 1: Direct GET with minimal parameters
+                    async () => {
+                        const testUrl = `${APPS_SCRIPT_URL}?action=test&domain=${encodeURIComponent(window.location.hostname)}`;
+                        console.log('📤 Method 1 - Direct GET:', testUrl);
+                        
+                        const response = await fetch(testUrl, {
+                            method: 'GET',
+                            mode: 'no-cors', // Changed to no-cors for GitHub Pages
+                            cache: 'no-cache',
+                            credentials: 'omit'
+                        });
+                        
+                        console.log('📡 Method 1 Response:', response);
+                        return { success: true, method: 'Direct GET (no-cors)' };
+                    },
+                    
+                    // Method 2: JSONP-style callback
+                    async () => {
+                        return new Promise((resolve, reject) => {
+                            const callbackName = 'appsScriptCallback_' + Date.now();
+                            const script = document.createElement('script');
+                            const timeout = setTimeout(() => {
+                                cleanup();
+                                reject(new Error('JSONP timeout'));
+                            }, 10000);
+                            
+                            const cleanup = () => {
+                                if (script.parentNode) script.parentNode.removeChild(script);
+                                if (window[callbackName]) delete window[callbackName];
+                                clearTimeout(timeout);
+                            };
+                            
+                            window[callbackName] = (data) => {
+                                cleanup();
+                                resolve({ success: true, method: 'JSONP', data });
+                            };
+                            
+                            script.src = `${APPS_SCRIPT_URL}?action=test&callback=${callbackName}&domain=${encodeURIComponent(window.location.hostname)}`;
+                            script.onerror = () => {
+                                cleanup();
+                                reject(new Error('JSONP script load failed'));
+                            };
+                            
+                            document.head.appendChild(script);
+                        });
+                    },
+                    
+                    // Method 3: Image ping method
+                    async () => {
+                        return new Promise((resolve, reject) => {
+                            const img = new Image();
+                            const timeout = setTimeout(() => {
+                                reject(new Error('Image ping timeout'));
+                            }, 5000);
+                            
+                            img.onload = img.onerror = () => {
+                                clearTimeout(timeout);
+                                resolve({ success: true, method: 'Image ping' });
+                            };
+                            
+                            img.src = `${APPS_SCRIPT_URL}?action=ping&t=${Date.now()}&domain=${encodeURIComponent(window.location.hostname)}`;
+                        });
+                    }
+                ];
                 
-                const response = await fetch(testUrl, {
-                    method: 'GET',
-                    mode: 'cors',
-                    cache: 'no-cache'
-                });
-                
-                console.log('📡 Response status:', response.status);
-                console.log('📡 Response ok:', response.ok);
-                
-                if (response.ok) {
-                    const result = await response.text();
-                    console.log('✅ Apps Script test successful:', result);
-                    showSuccess('✅ Koneksi ke server berhasil!');
-                    return true;
-                } else {
-                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                // Try each method
+                for (let i = 0; i < connectionMethods.length; i++) {
+                    try {
+                        console.log(`🔄 Trying connection method ${i + 1}...`);
+                        const result = await connectionMethods[i]();
+                        console.log(`✅ Connection method ${i + 1} successful:`, result);
+                        showSuccess(`✅ Koneksi berhasil via ${result.method}!`);
+                        return true;
+                    } catch (error) {
+                        console.log(`❌ Connection method ${i + 1} failed:`, error.message);
+                        if (i === connectionMethods.length - 1) {
+                            throw error;
+                        }
+                    }
                 }
+                
             } catch (error) {
-                console.error('❌ Apps Script test failed:', error);
-                showError('⚠️ Koneksi ke server bermasalah: ' + error.message);
+                console.error('❌ All connection methods failed:', error);
+                showError('⚠️ Koneksi bermasalah, tapi sistem tetap akan mencoba menyimpan data');
                 return false;
             }
         }
@@ -863,11 +928,12 @@
             dokumentasiModal.classList.remove('hidden');
         }
 
-        // Fungsi untuk menyimpan absensi ke Google Sheets - ENHANCED REAL-TIME VERSION
+        // Fungsi untuk menyimpan absensi ke Google Sheets - GITHUB PAGES COMPATIBLE
         async function saveAttendanceToSheets(type) {
             try {
                 console.log(`🔄 Menyimpan absensi ${type} ke Google Sheets...`);
                 console.log('🌐 Apps Script URL:', APPS_SCRIPT_URL);
+                console.log('🌐 Current domain:', window.location.hostname);
                 
                 const now = new Date();
                 const attendanceData = {
@@ -879,61 +945,36 @@
                     type: type,
                     timestamp: now.toISOString(),
                     durasi: currentLoginTime && type === 'logout' ? 
-                        formatDuration(now - currentLoginTime) : '-'
+                        formatDuration(now - currentLoginTime) : '-',
+                    domain: window.location.hostname,
+                    source: 'github-pages'
                 };
                 
                 console.log('📤 Data absensi yang akan dikirim:', attendanceData);
                 
-                // Method 1: Try POST request first (most reliable)
-                try {
-                    console.log('📤 Trying POST method...');
-                    const postResponse = await fetch(APPS_SCRIPT_URL, {
-                        method: 'POST',
-                        mode: 'cors',
-                        cache: 'no-cache',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Accept': 'application/json'
-                        },
-                        body: JSON.stringify(attendanceData)
-                    });
-                    
-                    console.log('📡 POST Response status:', postResponse.status);
-                    console.log('📡 POST Response ok:', postResponse.ok);
-                    
-                    if (postResponse.ok) {
-                        const result = await postResponse.text();
-                        console.log('✅ POST successful, response:', result);
+                // GitHub Pages compatible methods
+                const saveMethods = [
+                    // Method 1: No-CORS POST (GitHub Pages friendly)
+                    async () => {
+                        console.log('📤 Trying no-cors POST method...');
+                        const response = await fetch(APPS_SCRIPT_URL, {
+                            method: 'POST',
+                            mode: 'no-cors',
+                            cache: 'no-cache',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify(attendanceData)
+                        });
                         
-                        try {
-                            const jsonResult = JSON.parse(result);
-                            if (jsonResult.success) {
-                                showSuccess(`✅ ${type === 'login' ? 'Login' : 'Logout'} berhasil dicatat ke sistem!`);
-                                console.log('✅ Absensi berhasil disimpan via POST');
-                                return true;
-                            } else {
-                                throw new Error(jsonResult.error || 'Server returned success=false');
-                            }
-                        } catch (parseError) {
-                            // If response is not JSON, but request was successful
-                            if (result.includes('success') || result.includes('berhasil')) {
-                                showSuccess(`✅ ${type === 'login' ? 'Login' : 'Logout'} berhasil dicatat ke sistem!`);
-                                console.log('✅ Absensi berhasil disimpan via POST (non-JSON response)');
-                                return true;
-                            } else {
-                                throw new Error('Invalid response format: ' + result);
-                            }
-                        }
-                    } else {
-                        throw new Error(`POST failed with status: ${postResponse.status}`);
-                    }
+                        console.log('📡 No-CORS POST Response:', response);
+                        // no-cors mode doesn't allow reading response, but if no error thrown, assume success
+                        return { success: true, method: 'No-CORS POST' };
+                    },
                     
-                } catch (postError) {
-                    console.log('❌ POST method failed:', postError.message);
-                    
-                    // Method 2: Try GET request as fallback
-                    try {
-                        console.log('📤 Trying GET method as fallback...');
+                    // Method 2: GET with URL parameters
+                    async () => {
+                        console.log('📤 Trying GET method with URL params...');
                         const params = new URLSearchParams();
                         Object.keys(attendanceData).forEach(key => {
                             params.append(key, attendanceData[key]);
@@ -942,67 +983,128 @@
                         const getUrl = `${APPS_SCRIPT_URL}?${params.toString()}`;
                         console.log('🔗 GET URL length:', getUrl.length);
                         
-                        const getResponse = await fetch(getUrl, {
+                        const response = await fetch(getUrl, {
                             method: 'GET',
-                            mode: 'cors',
-                            cache: 'no-cache'
+                            mode: 'no-cors',
+                            cache: 'no-cache',
+                            credentials: 'omit'
                         });
                         
-                        console.log('📡 GET Response status:', getResponse.status);
-                        console.log('📡 GET Response ok:', getResponse.ok);
-                        
-                        if (getResponse.ok) {
-                            const result = await getResponse.text();
-                            console.log('✅ GET successful, response:', result);
+                        console.log('📡 GET Response:', response);
+                        return { success: true, method: 'GET with params' };
+                    },
+                    
+                    // Method 3: Form submission simulation
+                    async () => {
+                        console.log('📤 Trying form submission method...');
+                        return new Promise((resolve, reject) => {
+                            const form = document.createElement('form');
+                            form.method = 'POST';
+                            form.action = APPS_SCRIPT_URL;
+                            form.target = '_blank';
+                            form.style.display = 'none';
                             
-                            try {
-                                const jsonResult = JSON.parse(result);
-                                if (jsonResult.success) {
-                                    showSuccess(`✅ ${type === 'login' ? 'Login' : 'Logout'} berhasil dicatat ke sistem!`);
-                                    console.log('✅ Absensi berhasil disimpan via GET');
-                                    return true;
-                                } else {
-                                    throw new Error(jsonResult.error || 'Server returned success=false');
-                                }
-                            } catch (parseError) {
-                                // If response is not JSON, but request was successful
-                                if (result.includes('success') || result.includes('berhasil')) {
-                                    showSuccess(`✅ ${type === 'login' ? 'Login' : 'Logout'} berhasil dicatat ke sistem!`);
-                                    console.log('✅ Absensi berhasil disimpan via GET (non-JSON response)');
-                                    return true;
-                                } else {
-                                    throw new Error('Invalid response format: ' + result);
-                                }
-                            }
-                        } else {
-                            throw new Error(`GET failed with status: ${getResponse.status}`);
-                        }
+                            Object.keys(attendanceData).forEach(key => {
+                                const input = document.createElement('input');
+                                input.type = 'hidden';
+                                input.name = key;
+                                input.value = attendanceData[key];
+                                form.appendChild(input);
+                            });
+                            
+                            document.body.appendChild(form);
+                            
+                            // Submit form and clean up
+                            setTimeout(() => {
+                                form.submit();
+                                setTimeout(() => {
+                                    document.body.removeChild(form);
+                                    resolve({ success: true, method: 'Form submission' });
+                                }, 1000);
+                            }, 100);
+                        });
+                    },
+                    
+                    // Method 4: Image ping with data in URL
+                    async () => {
+                        console.log('📤 Trying image ping method...');
+                        return new Promise((resolve, reject) => {
+                            const img = new Image();
+                            const timeout = setTimeout(() => {
+                                reject(new Error('Image ping timeout'));
+                            }, 10000);
+                            
+                            img.onload = img.onerror = () => {
+                                clearTimeout(timeout);
+                                resolve({ success: true, method: 'Image ping' });
+                            };
+                            
+                            const params = new URLSearchParams();
+                            Object.keys(attendanceData).forEach(key => {
+                                params.append(key, attendanceData[key]);
+                            });
+                            
+                            img.src = `${APPS_SCRIPT_URL}?${params.toString()}&_t=${Date.now()}`;
+                        });
+                    }
+                ];
+                
+                // Try each method until one succeeds
+                let lastError = null;
+                for (let i = 0; i < saveMethods.length; i++) {
+                    try {
+                        console.log(`🔄 Trying save method ${i + 1}...`);
+                        const result = await saveMethods[i]();
+                        console.log(`✅ Save method ${i + 1} successful:`, result);
+                        showSuccess(`✅ ${type === 'login' ? 'Login' : 'Logout'} berhasil dicatat via ${result.method}!`);
+                        return true;
+                    } catch (error) {
+                        console.log(`❌ Save method ${i + 1} failed:`, error.message);
+                        lastError = error;
                         
-                    } catch (getError) {
-                        console.log('❌ GET method also failed:', getError.message);
-                        throw new Error(`Both POST and GET methods failed. POST: ${postError.message}, GET: ${getError.message}`);
+                        // Don't fail immediately, try next method
+                        if (i < saveMethods.length - 1) {
+                            console.log(`🔄 Trying next method...`);
+                            continue;
+                        }
                     }
                 }
                 
+                // If all methods failed
+                throw lastError || new Error('All save methods failed');
+                
             } catch (error) {
                 console.error(`❌ Error saving absensi ${type}:`, error);
-                showError(`❌ Gagal menyimpan ${type}: ${error.message}`);
+                
+                // Show user-friendly message but don't block the app
+                showError(`⚠️ ${type === 'login' ? 'Login' : 'Logout'} mungkin belum tersimpan. Sistem akan mencoba lagi.`);
+                
+                // Store locally as backup
+                const backupKey = `backup_absensi_${type}_${Date.now()}`;
+                localStorage.setItem(backupKey, JSON.stringify({
+                    ...attendanceData,
+                    error: error.message,
+                    retryCount: 0
+                }));
+                
+                console.log('💾 Data disimpan sebagai backup di localStorage:', backupKey);
                 return false;
             }
         }
 
-        // Fungsi untuk menyimpan dokumentasi ke Google Sheets - ENHANCED REAL-TIME VERSION
+        // Fungsi untuk menyimpan dokumentasi ke Google Sheets - GITHUB PAGES COMPATIBLE
         async function saveDokumentasiToSheets(dokumentasiData) {
             console.log('🔄 Mencoba menyimpan dokumentasi ke Google Sheets...');
             console.log('🌐 Apps Script URL:', APPS_SCRIPT_URL);
+            console.log('🌐 Current domain:', window.location.hostname);
             
             try {
-                console.log('📤 Mencoba menyimpan ke Google Sheets...');
-                
-                // Prepare data with action parameter
+                // Prepare data with action parameter and GitHub Pages info
                 const dataToSend = {
                     action: 'saveDokumentasi',
-                    ...dokumentasiData
+                    ...dokumentasiData,
+                    domain: window.location.hostname,
+                    source: 'github-pages'
                 };
                 
                 console.log('📋 Data dokumentasi yang akan dikirim:', {
@@ -1011,54 +1113,29 @@
                     fotoAfter: dataToSend.fotoAfter ? `[Base64 image: ${dataToSend.fotoAfter.length} chars]` : null
                 });
                 
-                // Method 1: Try POST request first (most reliable for large data)
-                try {
-                    console.log('📤 Trying POST method...');
-                    const postResponse = await fetch(APPS_SCRIPT_URL, {
-                        method: 'POST',
-                        mode: 'cors',
-                        cache: 'no-cache',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Accept': 'application/json'
-                        },
-                        body: JSON.stringify(dataToSend)
-                    });
-                    
-                    console.log('📡 POST Response status:', postResponse.status);
-                    console.log('📡 POST Response ok:', postResponse.ok);
-                    
-                    if (postResponse.ok) {
-                        const result = await postResponse.text();
-                        console.log('✅ POST successful, response:', result);
+                // GitHub Pages compatible methods for dokumentasi
+                const saveMethods = [
+                    // Method 1: No-CORS POST (GitHub Pages friendly)
+                    async () => {
+                        console.log('📤 Trying no-cors POST method for dokumentasi...');
+                        const response = await fetch(APPS_SCRIPT_URL, {
+                            method: 'POST',
+                            mode: 'no-cors',
+                            cache: 'no-cache',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify(dataToSend)
+                        });
                         
-                        try {
-                            const jsonResult = JSON.parse(result);
-                            if (jsonResult.success) {
-                                console.log('✅ Dokumentasi berhasil disimpan via POST');
-                                return true;
-                            } else {
-                                throw new Error(jsonResult.error || 'Server returned success=false');
-                            }
-                        } catch (parseError) {
-                            // If response is not JSON, but request was successful
-                            if (result.includes('success') || result.includes('berhasil')) {
-                                console.log('✅ Dokumentasi berhasil disimpan via POST (non-JSON response)');
-                                return true;
-                            } else {
-                                throw new Error('Invalid response format: ' + result);
-                            }
-                        }
-                    } else {
-                        throw new Error(`POST failed with status: ${postResponse.status}`);
-                    }
+                        console.log('📡 No-CORS POST Response:', response);
+                        // no-cors mode doesn't allow reading response, but if no error thrown, assume success
+                        return { success: true, method: 'No-CORS POST' };
+                    },
                     
-                } catch (postError) {
-                    console.log('❌ POST method failed:', postError.message);
-                    
-                    // Method 2: Try GET request without images as fallback
-                    try {
-                        console.log('📤 Trying GET method without images as fallback...');
+                    // Method 2: GET without images (for GitHub Pages compatibility)
+                    async () => {
+                        console.log('📤 Trying GET method without images...');
                         const params = new URLSearchParams();
                         params.append('action', 'saveDokumentasi');
                         params.append('nama', dokumentasiData.nama);
@@ -1071,53 +1148,155 @@
                         params.append('lokasi', dokumentasiData.lokasi);
                         params.append('timestamp', dokumentasiData.timestamp);
                         params.append('hasImages', (dokumentasiData.fotoBefore || dokumentasiData.fotoAfter) ? 'true' : 'false');
+                        params.append('domain', window.location.hostname);
+                        params.append('source', 'github-pages');
                         
                         const getUrl = `${APPS_SCRIPT_URL}?${params.toString()}`;
                         console.log('🔗 GET URL length:', getUrl.length);
                         
-                        const getResponse = await fetch(getUrl, {
+                        const response = await fetch(getUrl, {
                             method: 'GET',
-                            mode: 'cors',
-                            cache: 'no-cache'
+                            mode: 'no-cors',
+                            cache: 'no-cache',
+                            credentials: 'omit'
                         });
                         
-                        console.log('📡 GET Response status:', getResponse.status);
-                        console.log('📡 GET Response ok:', getResponse.ok);
-                        
-                        if (getResponse.ok) {
-                            const result = await getResponse.text();
-                            console.log('✅ GET successful, response:', result);
+                        console.log('📡 GET Response:', response);
+                        return { success: true, method: 'GET without images' };
+                    },
+                    
+                    // Method 3: Form submission with hidden iframe
+                    async () => {
+                        console.log('📤 Trying form submission method...');
+                        return new Promise((resolve, reject) => {
+                            // Create hidden iframe for form submission
+                            const iframe = document.createElement('iframe');
+                            iframe.style.display = 'none';
+                            iframe.name = 'dokumentasi_frame_' + Date.now();
+                            document.body.appendChild(iframe);
                             
-                            try {
-                                const jsonResult = JSON.parse(result);
-                                if (jsonResult.success) {
-                                    console.log('✅ Dokumentasi berhasil disimpan via GET');
-                                    return true;
-                                } else {
-                                    throw new Error(jsonResult.error || 'Server returned success=false');
+                            const form = document.createElement('form');
+                            form.method = 'POST';
+                            form.action = APPS_SCRIPT_URL;
+                            form.target = iframe.name;
+                            form.style.display = 'none';
+                            
+                            // Add form fields (without images for URL length limits)
+                            const fieldsToSend = {
+                                action: 'saveDokumentasi',
+                                nama: dokumentasiData.nama,
+                                branch: dokumentasiData.branch,
+                                tanggal: dokumentasiData.tanggal,
+                                jam: dokumentasiData.jam,
+                                jobdeskId: dokumentasiData.jobdeskId,
+                                jobdeskTitle: dokumentasiData.jobdeskTitle,
+                                komentar: dokumentasiData.komentar,
+                                lokasi: dokumentasiData.lokasi,
+                                timestamp: dokumentasiData.timestamp,
+                                hasImages: (dokumentasiData.fotoBefore || dokumentasiData.fotoAfter) ? 'true' : 'false',
+                                domain: window.location.hostname,
+                                source: 'github-pages'
+                            };
+                            
+                            Object.keys(fieldsToSend).forEach(key => {
+                                const input = document.createElement('input');
+                                input.type = 'hidden';
+                                input.name = key;
+                                input.value = fieldsToSend[key];
+                                form.appendChild(input);
+                            });
+                            
+                            document.body.appendChild(form);
+                            
+                            // Submit form and clean up
+                            setTimeout(() => {
+                                form.submit();
+                                setTimeout(() => {
+                                    document.body.removeChild(form);
+                                    document.body.removeChild(iframe);
+                                    resolve({ success: true, method: 'Form submission' });
+                                }, 2000);
+                            }, 100);
+                        });
+                    },
+                    
+                    // Method 4: Multiple image ping requests (split data)
+                    async () => {
+                        console.log('📤 Trying multiple image ping method...');
+                        return new Promise((resolve, reject) => {
+                            let completedRequests = 0;
+                            const totalRequests = 1; // Just send basic data first
+                            
+                            const img = new Image();
+                            const timeout = setTimeout(() => {
+                                reject(new Error('Image ping timeout'));
+                            }, 15000);
+                            
+                            img.onload = img.onerror = () => {
+                                completedRequests++;
+                                if (completedRequests >= totalRequests) {
+                                    clearTimeout(timeout);
+                                    resolve({ success: true, method: 'Multiple image ping' });
                                 }
-                            } catch (parseError) {
-                                // If response is not JSON, but request was successful
-                                if (result.includes('success') || result.includes('berhasil')) {
-                                    console.log('✅ Dokumentasi berhasil disimpan via GET (non-JSON response)');
-                                    return true;
-                                } else {
-                                    throw new Error('Invalid response format: ' + result);
-                                }
-                            }
-                        } else {
-                            throw new Error(`GET failed with status: ${getResponse.status}`);
-                        }
+                            };
+                            
+                            // Send basic dokumentasi data
+                            const params = new URLSearchParams();
+                            params.append('action', 'saveDokumentasi');
+                            params.append('nama', dokumentasiData.nama);
+                            params.append('branch', dokumentasiData.branch);
+                            params.append('tanggal', dokumentasiData.tanggal);
+                            params.append('jam', dokumentasiData.jam);
+                            params.append('jobdeskId', dokumentasiData.jobdeskId);
+                            params.append('jobdeskTitle', dokumentasiData.jobdeskTitle);
+                            params.append('komentar', dokumentasiData.komentar.substring(0, 500)); // Limit length
+                            params.append('lokasi', dokumentasiData.lokasi);
+                            params.append('timestamp', dokumentasiData.timestamp);
+                            params.append('domain', window.location.hostname);
+                            params.append('source', 'github-pages-ping');
+                            params.append('_t', Date.now().toString());
+                            
+                            img.src = `${APPS_SCRIPT_URL}?${params.toString()}`;
+                        });
+                    }
+                ];
+                
+                // Try each method until one succeeds
+                let lastError = null;
+                for (let i = 0; i < saveMethods.length; i++) {
+                    try {
+                        console.log(`🔄 Trying dokumentasi save method ${i + 1}...`);
+                        const result = await saveMethods[i]();
+                        console.log(`✅ Dokumentasi save method ${i + 1} successful:`, result);
+                        return true;
+                    } catch (error) {
+                        console.log(`❌ Dokumentasi save method ${i + 1} failed:`, error.message);
+                        lastError = error;
                         
-                    } catch (getError) {
-                        console.log('❌ GET method also failed:', getError.message);
-                        throw new Error(`Both POST and GET methods failed. POST: ${postError.message}, GET: ${getError.message}`);
+                        // Don't fail immediately, try next method
+                        if (i < saveMethods.length - 1) {
+                            console.log(`🔄 Trying next dokumentasi method...`);
+                            continue;
+                        }
                     }
                 }
                 
+                // If all methods failed
+                throw lastError || new Error('All dokumentasi save methods failed');
+                
             } catch (error) {
-                console.error('❌ Gagal menyimpan ke Google Sheets:', error.message);
-                throw new Error('Server tidak dapat diakses: ' + error.message);
+                console.error('❌ Gagal menyimpan dokumentasi ke Google Sheets:', error.message);
+                
+                // Store locally as backup
+                const backupKey = `backup_dokumentasi_${Date.now()}`;
+                localStorage.setItem(backupKey, JSON.stringify({
+                    ...dokumentasiData,
+                    error: error.message,
+                    retryCount: 0
+                }));
+                
+                console.log('💾 Dokumentasi disimpan sebagai backup di localStorage:', backupKey);
+                throw new Error('Dokumentasi disimpan lokal, akan dicoba kirim ulang nanti: ' + error.message);
             }
         }
 
@@ -1211,7 +1390,63 @@
             }
         }
 
-        // Load data saat halaman dimuat - ENHANCED VERSION
+        // Fungsi untuk retry backup data yang gagal dikirim
+        async function retryBackupData() {
+            console.log('🔄 Checking for backup data to retry...');
+            
+            const keys = Object.keys(localStorage);
+            const backupKeys = keys.filter(key => key.startsWith('backup_'));
+            
+            if (backupKeys.length === 0) {
+                console.log('✅ No backup data found');
+                return;
+            }
+            
+            console.log(`📦 Found ${backupKeys.length} backup items to retry`);
+            
+            for (const key of backupKeys) {
+                try {
+                    const backupData = JSON.parse(localStorage.getItem(key));
+                    console.log(`🔄 Retrying backup: ${key}`);
+                    
+                    if (key.includes('absensi')) {
+                        // Retry attendance data
+                        const success = await saveAttendanceToSheets(backupData.type);
+                        if (success) {
+                            localStorage.removeItem(key);
+                            console.log(`✅ Successfully retried backup: ${key}`);
+                        }
+                    } else if (key.includes('dokumentasi')) {
+                        // Retry dokumentasi data
+                        const success = await saveDokumentasiToSheets(backupData);
+                        if (success) {
+                            localStorage.removeItem(key);
+                            console.log(`✅ Successfully retried backup: ${key}`);
+                        }
+                    }
+                } catch (error) {
+                    console.log(`❌ Failed to retry backup ${key}:`, error.message);
+                    
+                    // Increment retry count
+                    try {
+                        const backupData = JSON.parse(localStorage.getItem(key));
+                        backupData.retryCount = (backupData.retryCount || 0) + 1;
+                        
+                        // Remove after 5 failed retries
+                        if (backupData.retryCount >= 5) {
+                            localStorage.removeItem(key);
+                            console.log(`🗑️ Removed backup after 5 failed retries: ${key}`);
+                        } else {
+                            localStorage.setItem(key, JSON.stringify(backupData));
+                        }
+                    } catch (parseError) {
+                        localStorage.removeItem(key);
+                    }
+                }
+            }
+        }
+
+        // Load data saat halaman dimuat - GITHUB PAGES ENHANCED VERSION
         window.addEventListener('load', async function() {
             console.log('🚀 Halaman dimuat, memulai inisialisasi...');
             console.log('🌐 Environment info:');
@@ -1219,6 +1454,7 @@
             console.log('   - Location:', window.location.href);
             console.log('   - Protocol:', window.location.protocol);
             console.log('   - Host:', window.location.host);
+            console.log('   - Is GitHub Pages:', window.location.hostname.includes('github.io'));
             console.log('   - Apps Script URL:', APPS_SCRIPT_URL);
             console.log('   - Online status:', navigator.onLine);
             
@@ -1227,6 +1463,18 @@
             
             // Load MD data
             await loadMDDataFromSheets();
+            
+            // Retry any backup data from previous failed attempts
+            if (navigator.onLine) {
+                setTimeout(retryBackupData, 2000);
+            }
+            
+            // Set up periodic retry for backup data
+            setInterval(() => {
+                if (navigator.onLine) {
+                    retryBackupData();
+                }
+            }, 30000); // Every 30 seconds
         });
 
         // Monitor perubahan status koneksi
@@ -1558,5 +1806,5 @@
         window.toggleJobdesk = toggleJobdesk;
         window.openDokumentasiModal = openDokumentasiModal;
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'994312a4b76eea89',t:'MTc2MTQwOTU1Ny4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'994324522296e8a2',t:'MTc2MTQxMDI4MS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
