@@ -188,11 +188,11 @@
                                 <p class="text-sm text-gray-600" id="branchText">Branch: -</p>
                                 <div class="text-xs sm:text-sm text-blue-600 font-medium">
                                     <div class="flex flex-col sm:flex-row sm:items-center sm:space-x-2">
-                                        <span>Durasi Kerja:</span>
-                                        <span id="workDuration" class="font-mono text-sm sm:text-base">00:00:00</span>
+                                        <span class="text-xs sm:text-sm">Durasi Kerja:</span>
+                                        <span id="workDuration" class="font-mono text-lg sm:text-xl md:text-2xl font-bold text-blue-700 break-all">00:00:00</span>
                                     </div>
-                                    <div id="workDurationText" class="text-xs text-blue-500 mt-1">
-                                        0 jam 0 menit 0 detik
+                                    <div id="workDurationText" class="text-xs sm:text-sm text-blue-500 mt-1 font-medium">
+                                        0 detik
                                     </div>
                                 </div>
                             </div>
@@ -265,12 +265,12 @@
                 <div class="mb-10">
                     <div class="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl p-8 border border-blue-100">
                         <p class="text-lg text-gray-600 mb-4">Anda bergabung dengan durasi waktu</p>
-                        <div class="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 mb-2 break-all" id="thankYouDurasi">
+                        <div class="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 mb-2 font-mono leading-tight" id="thankYouDurasi">
                             00:00:00
                         </div>
-                        <p class="text-xs sm:text-sm text-gray-500 uppercase tracking-wider font-medium mb-2">Jam : Menit : Detik</p>
-                        <p class="text-base sm:text-lg text-gray-600 font-medium" id="thankYouDurasiText">
-                            0 jam 0 menit 0 detik
+                        <p class="text-xs sm:text-sm text-gray-500 uppercase tracking-wider font-medium mb-3">Jam : Menit : Detik</p>
+                        <p class="text-sm sm:text-base md:text-lg text-gray-600 font-semibold" id="thankYouDurasiText">
+                            0 detik
                         </p>
                     </div>
                 </div>
@@ -563,6 +563,14 @@
         let workDurationInterval = null;
         let adminDataCache = null;
         let lastDataRefresh = null;
+        
+        // Session persistence keys
+        const SESSION_KEYS = {
+            MD_SESSION: 'md_session_active',
+            ADMIN_SESSION: 'admin_session_active',
+            MD_DATA: 'current_md_data',
+            LOGIN_TIME: 'current_login_time'
+        };
 
         // Elements
         const loginPage = document.getElementById('loginPage');
@@ -779,6 +787,96 @@
             }
         }
 
+        // Session Management Functions
+        function saveMDSession() {
+            if (currentMD && currentLoginTime) {
+                localStorage.setItem(SESSION_KEYS.MD_SESSION, 'true');
+                localStorage.setItem(SESSION_KEYS.MD_DATA, JSON.stringify(currentMD));
+                localStorage.setItem(SESSION_KEYS.LOGIN_TIME, currentLoginTime.toISOString());
+                console.log('💾 MD session saved to localStorage');
+            }
+        }
+        
+        function saveAdminSession() {
+            localStorage.setItem(SESSION_KEYS.ADMIN_SESSION, 'true');
+            console.log('💾 Admin session saved to localStorage');
+        }
+        
+        function clearMDSession() {
+            localStorage.removeItem(SESSION_KEYS.MD_SESSION);
+            localStorage.removeItem(SESSION_KEYS.MD_DATA);
+            localStorage.removeItem(SESSION_KEYS.LOGIN_TIME);
+            console.log('🗑️ MD session cleared from localStorage');
+        }
+        
+        function clearAdminSession() {
+            localStorage.removeItem(SESSION_KEYS.ADMIN_SESSION);
+            console.log('🗑️ Admin session cleared from localStorage');
+        }
+        
+        function restoreMDSession() {
+            const hasMDSession = localStorage.getItem(SESSION_KEYS.MD_SESSION) === 'true';
+            const mdData = localStorage.getItem(SESSION_KEYS.MD_DATA);
+            const loginTimeStr = localStorage.getItem(SESSION_KEYS.LOGIN_TIME);
+            
+            if (hasMDSession && mdData && loginTimeStr) {
+                try {
+                    currentMD = JSON.parse(mdData);
+                    currentLoginTime = new Date(loginTimeStr);
+                    
+                    console.log('🔄 Restoring MD session:', currentMD.nama);
+                    console.log('🕐 Original login time:', currentLoginTime.toLocaleString('id-ID'));
+                    
+                    // Update UI
+                    welcomeText.textContent = `Selamat Datang, ${currentMD.nama}`;
+                    branchText.textContent = `Branch: ${currentMD.branch}`;
+                    
+                    // Start work duration tracking
+                    workDurationInterval = setInterval(updateWorkDuration, 1000);
+                    updateWorkDuration(); // Update immediately
+                    
+                    // Display jobdesk
+                    displayJobdesk();
+                    
+                    // Show dashboard
+                    loginPage.classList.add('hidden');
+                    adminLoginPage.classList.add('hidden');
+                    adminDashboardPage.classList.add('hidden');
+                    thankYouPage.classList.add('hidden');
+                    dashboardPage.classList.remove('hidden');
+                    
+                    console.log('✅ MD session restored successfully');
+                    return true;
+                } catch (error) {
+                    console.error('❌ Error restoring MD session:', error);
+                    clearMDSession();
+                }
+            }
+            return false;
+        }
+        
+        function restoreAdminSession() {
+            const hasAdminSession = localStorage.getItem(SESSION_KEYS.ADMIN_SESSION) === 'true';
+            
+            if (hasAdminSession) {
+                console.log('🔄 Restoring admin session');
+                
+                // Show admin dashboard
+                loginPage.classList.add('hidden');
+                adminLoginPage.classList.add('hidden');
+                dashboardPage.classList.add('hidden');
+                thankYouPage.classList.add('hidden');
+                adminDashboardPage.classList.remove('hidden');
+                
+                // Load admin data
+                loadAdminData();
+                
+                console.log('✅ Admin session restored successfully');
+                return true;
+            }
+            return false;
+        }
+
         // Fungsi untuk memulai tracking waktu kerja - ENHANCED VERSION
         function startWorkDurationTracking() {
             currentLoginTime = new Date();
@@ -786,6 +884,9 @@
             
             console.log('⏰ Memulai tracking waktu kerja untuk:', currentMD.nama);
             console.log('🕐 Login time:', currentLoginTime.toLocaleString('id-ID'));
+            
+            // Save session to localStorage
+            saveMDSession();
             
             // Save attendance to Google Sheets IMMEDIATELY
             saveAttendanceToSheets('login');
@@ -859,6 +960,9 @@
                 
                 // Save logout attendance to Google Sheets IMMEDIATELY
                 saveAttendanceToSheets('logout');
+                
+                // Clear MD session from localStorage
+                clearMDSession();
                 
                 // Show thank you page with work duration
                 showThankYouPage(durationText);
@@ -1696,6 +1800,29 @@
             console.log('   - Apps Script URL:', APPS_SCRIPT_URL);
             console.log('   - Online status:', navigator.onLine);
             
+            // Check for existing sessions FIRST
+            console.log('🔍 Checking for existing sessions...');
+            
+            // Try to restore admin session first
+            if (restoreAdminSession()) {
+                console.log('✅ Admin session restored, skipping other initialization');
+                return;
+            }
+            
+            // Try to restore MD session
+            if (restoreMDSession()) {
+                console.log('✅ MD session restored, continuing with background tasks');
+                // Continue with background tasks but don't show login page
+            } else {
+                console.log('ℹ️ No active sessions found, showing login page');
+                // Show login page (default state)
+                loginPage.classList.remove('hidden');
+                adminLoginPage.classList.add('hidden');
+                dashboardPage.classList.add('hidden');
+                adminDashboardPage.classList.add('hidden');
+                thankYouPage.classList.add('hidden');
+            }
+            
             // Special handling for GitHub Pages
             if (window.location.hostname.includes('github.io')) {
                 console.log('🔧 GitHub Pages detected - using optimized connection methods');
@@ -1820,6 +1947,9 @@
             const password = document.getElementById('adminPasswordLogin').value.trim();
             
             if (username === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
+                // Save admin session
+                saveAdminSession();
+                
                 adminLoginPage.classList.add('hidden');
                 adminDashboardPage.classList.remove('hidden');
                 adminErrorMessage.classList.add('hidden');
@@ -1836,6 +1966,9 @@
 
         // Handle admin logout
         adminLogoutBtn.addEventListener('click', function() {
+            // Clear admin session
+            clearAdminSession();
+            
             adminDashboardPage.classList.add('hidden');
             loginPage.classList.remove('hidden');
             adminLoginForm.reset();
@@ -1972,6 +2105,9 @@
                 completedJobdesk[mdKey][jobdeskId] = true;
                 localStorage.setItem('completedJobdesk', JSON.stringify(completedJobdesk));
                 
+                // Update session data to persist completed jobdesk
+                saveMDSession();
+                
                 // Auto-check the checkbox
                 const checkbox = document.getElementById(`task${jobdeskId}`);
                 if (checkbox) {
@@ -2070,6 +2206,10 @@
             absenForm.reset();
             errorMessage.classList.add('hidden');
             
+            // Reset current MD data
+            currentMD = null;
+            currentLoginTime = null;
+            
             showSuccess('✅ Siap untuk login MD berikutnya!');
         });
 
@@ -2077,5 +2217,5 @@
         window.toggleJobdesk = toggleJobdesk;
         window.openDokumentasiModal = openDokumentasiModal;
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'994373e282d01c0e',t:'MTc2MTQxMzU0MC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9943815855041c0e',t:'MTc2MTQxNDA5MS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
