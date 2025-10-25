@@ -23,6 +23,24 @@
             from { transform: translateY(100%); opacity: 0; }
             to { transform: translateY(0); opacity: 1; }
         }
+        .modal-backdrop {
+            backdrop-filter: blur(4px);
+        }
+        .image-preview {
+            max-width: 200px;
+            max-height: 150px;
+            object-fit: cover;
+        }
+        .admin-tab.active {
+            color: #7c3aed;
+            border-color: #7c3aed;
+        }
+        .admin-content {
+            display: block;
+        }
+        .admin-content.hidden {
+            display: none;
+        }
     </style>
 </head>
 <body class="min-h-full bg-gradient-to-br from-blue-50 to-indigo-100">
@@ -68,6 +86,16 @@
                     </button>
                 </form>
 
+                <!-- Tombol Admin Login -->
+                <div class="mt-6 pt-6 border-t border-gray-200">
+                    <button id="adminLoginBtn" class="w-full bg-purple-600 text-white py-3 px-4 rounded-lg hover:bg-purple-700 focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 transition-colors font-medium">
+                        <svg class="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                        </svg>
+                        Login sebagai Admin
+                    </button>
+                </div>
+
                 <!-- Pesan Error -->
                 <div id="errorMessage" class="hidden mt-4 p-4 bg-red-50 border border-red-200 rounded-lg slide-up">
                     <div class="flex items-center">
@@ -75,6 +103,69 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                         </svg>
                         <p class="text-red-700 font-medium">Data tidak ditemukan !! Silahkan urus surat tugas !!!</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Halaman Login Admin -->
+        <div id="adminLoginPage" class="hidden min-h-full flex items-center justify-center p-4">
+            <div class="bg-white rounded-2xl shadow-xl p-8 w-full max-w-md fade-in">
+                <div class="text-center mb-8">
+                    <div class="bg-purple-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <svg class="w-8 h-8 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                        </svg>
+                    </div>
+                    <h1 class="text-2xl font-bold text-gray-900 mb-2">Login Admin</h1>
+                    <p class="text-gray-600">Masukkan kredensial admin untuk melanjutkan</p>
+                </div>
+
+                <form id="adminLoginForm" class="space-y-6">
+                    <div>
+                        <label for="adminUsername" class="block text-sm font-medium text-gray-700 mb-2">Username Admin</label>
+                        <input type="text" id="adminUsername" name="adminUsername" required 
+                               class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors"
+                               placeholder="Masukkan username admin">
+                    </div>
+
+                    <div>
+                        <label for="adminPasswordLogin" class="block text-sm font-medium text-gray-700 mb-2">Password Admin</label>
+                        <input type="password" id="adminPasswordLogin" name="adminPasswordLogin" required 
+                               class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors"
+                               placeholder="Masukkan password admin">
+                    </div>
+
+                    <button type="submit" id="adminSubmitBtn"
+                            class="w-full bg-purple-600 text-white py-3 px-4 rounded-lg hover:bg-purple-700 focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 transition-colors font-medium">
+                        <span id="adminSubmitText">Login Admin</span>
+                        <span id="adminLoadingSpinner" class="hidden">
+                            <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            Memuat...
+                        </span>
+                    </button>
+                </form>
+
+                <!-- Tombol Kembali -->
+                <div class="mt-6 pt-6 border-t border-gray-200">
+                    <button id="backToMDLoginBtn" class="w-full bg-gray-500 text-white py-3 px-4 rounded-lg hover:bg-gray-600 focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-colors font-medium">
+                        <svg class="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                        </svg>
+                        Kembali ke Login MD
+                    </button>
+                </div>
+
+                <!-- Pesan Error Admin -->
+                <div id="adminErrorMessage" class="hidden mt-4 p-4 bg-red-50 border border-red-200 rounded-lg slide-up">
+                    <div class="flex items-center">
+                        <svg class="w-5 h-5 text-red-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        <p class="text-red-700 font-medium">Username atau password admin salah!</p>
                     </div>
                 </div>
             </div>
@@ -95,12 +186,10 @@
                             <div>
                                 <h1 class="text-xl font-semibold text-gray-900" id="welcomeText">Selamat Datang</h1>
                                 <p class="text-sm text-gray-600" id="branchText">Branch: -</p>
+                                <p class="text-sm text-blue-600 font-medium">Durasi Kerja: <span id="workDuration">00:00:00</span></p>
                             </div>
                         </div>
                         <div class="flex space-x-2">
-                            <button id="adminBtn" class="bg-purple-500 text-white px-4 py-2 rounded-lg hover:bg-purple-600 transition-colors">
-                                Admin
-                            </button>
                             <button id="logoutBtn" class="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-colors">
                                 Keluar
                             </button>
@@ -111,268 +200,144 @@
 
             <!-- Main Content -->
             <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                    <!-- Jobdesk Section -->
-                    <div class="bg-white rounded-xl shadow-lg p-6 fade-in">
-                        <div class="flex items-center mb-6">
-                            <div class="bg-blue-100 w-12 h-12 rounded-lg flex items-center justify-center mr-4">
-                                <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                <div class="bg-white rounded-xl shadow-lg p-6 fade-in">
+                    <div class="flex items-center mb-6">
+                        <div class="bg-blue-100 w-12 h-12 rounded-lg flex items-center justify-center mr-4">
+                            <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                            </svg>
+                        </div>
+                        <h2 class="text-2xl font-bold text-gray-900">Jobdesk Hari Ini</h2>
+                    </div>
+
+                    <div id="jobdeskContainer" class="space-y-6">
+                        <!-- Jobdesk akan dimuat di sini -->
+                    </div>
+                </div>
+            </main>
+        </div>
+
+        <!-- Halaman Dashboard Admin -->
+        <div id="adminDashboardPage" class="hidden min-h-full">
+            <!-- Header Admin -->
+            <header class="bg-purple-600 shadow-sm">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div class="flex justify-between items-center py-4">
+                        <div class="flex items-center">
+                            <div class="bg-purple-100 w-10 h-10 rounded-full flex items-center justify-center mr-3">
+                                <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
                                 </svg>
                             </div>
-                            <h2 class="text-2xl font-bold text-gray-900">Jobdesk Hari Ini</h2>
+                            <div>
+                                <h1 class="text-xl font-semibold text-white">Dashboard Admin</h1>
+                                <p class="text-sm text-purple-100">Panel Kontrol Sistem Absensi MD</p>
+                            </div>
                         </div>
+                        <div class="flex space-x-2">
+                            <button id="adminLogoutBtn" class="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-colors">
+                                Keluar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </header>
 
-                        <div class="space-y-4">
-                            <div class="border-l-4 border-blue-500 pl-4 py-2">
-                                <h3 class="font-semibold text-gray-900">CLEANING</h3>
-                                <p class="text-gray-600 text-sm">Melakukan pembersihan pada produk,selving,dan profile</p>
-                                <div class="flex items-center mt-2">
-                                    <input type="checkbox" id="task1" class="mr-2 rounded">
-                                    <label for="task1" class="text-sm text-gray-700">Selesai</label>
-                                </div>
-                            </div>
-
-                            <div class="border-l-4 border-green-500 pl-4 py-2">
-                                <h3 class="font-semibold text-gray-900">CEK EXPIRED DATE</h3>
-                                <p class="text-gray-600 text-sm">memeriksa expired date pada semua produk secara 1 per 1</p>
-                                <div class="flex items-center mt-2">
-                                    <input type="checkbox" id="task2" class="mr-2 rounded">
-                                    <label for="task2" class="text-sm text-gray-700">Selesai</label>
-                                </div>
-                            </div>
-
-                            <div class="border-l-4 border-yellow-500 pl-4 py-2">
-                                <h3 class="font-semibold text-gray-900">FIFO</h3>
-                                <p class="text-gray-600 text-sm">melakukan switching pada semua produk menurut expired terdekat</p>
-                                <div class="flex items-center mt-2">
-                                    <input type="checkbox" id="task3" class="mr-2 rounded">
-                                    <label for="task3" class="text-sm text-gray-700">Selesai</label>
-                                </div>
-                            </div>
-
-                            <div class="border-l-4 border-purple-500 pl-4 py-2">
-                                <h3 class="font-semibold text-gray-900">CEK PRICECARD DAN POP</h3>
-                                <p class="text-gray-600 text-sm">Memmastikan bahwa label sudah ada pada semua produk</p>
-                                <div class="flex items-center mt-2">
-                                    <input type="checkbox" id="task4" class="mr-2 rounded">
-                                    <label for="task4" class="text-sm text-gray-700">Selesai</label>
-                                </div>
-                            </div>
+            <!-- Main Content Admin -->
+            <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                <div class="bg-white rounded-xl shadow-lg p-8">
+                    <div class="flex items-center mb-6">
+                        <div class="bg-green-100 w-12 h-12 rounded-lg flex items-center justify-center mr-4">
+                            <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                            </svg>
+                        </div>
+                        <div>
+                            <h2 class="text-2xl font-bold text-gray-900">Data Dokumentasi MD</h2>
+                            <p class="text-gray-600">Monitor dan kelola dokumentasi jobdesk MD</p>
                         </div>
                     </div>
 
-                    <!-- Dokumentasi Section -->
-                    <div class="bg-white rounded-xl shadow-lg p-6 fade-in">
-                        <div class="flex items-center mb-6">
-                            <div class="bg-green-100 w-12 h-12 rounded-lg flex items-center justify-center mr-4">
-                                <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z"></path>
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5a2 2 0 012-2h4a2 2 0 012 2v6H8V5z"></path>
-                                </svg>
-                            </div>
-                            <h2 class="text-2xl font-bold text-gray-900">Dokumentasi</h2>
+                    <!-- Filter dan Controls -->
+                    <div class="mb-6 flex flex-wrap gap-4">
+                        <select id="adminFilterBranch" class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500">
+                            <option value="">Semua Branch</option>
+                        </select>
+                        <input type="date" id="adminFilterTanggal" class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500">
+                        <button id="adminRefreshBtn" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                            <svg class="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                            </svg>
+                            Refresh
+                        </button>
+                        <button id="adminClearFilterBtn" class="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition-colors">
+                            Clear Filter
+                        </button>
+                    </div>
+
+                    <!-- Tabs untuk Admin -->
+                    <div class="mb-6">
+                        <div class="border-b border-gray-200">
+                            <nav class="-mb-px flex space-x-8">
+                                <button id="tabDokumentasi" class="admin-tab active border-b-2 border-purple-500 py-2 px-1 text-sm font-medium text-purple-600">
+                                    Data Dokumentasi
+                                </button>
+                                <button id="tabRekapLogin" class="admin-tab border-b-2 border-transparent py-2 px-1 text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300">
+                                    Rekap Login MD
+                                </button>
+                            </nav>
                         </div>
+                    </div>
 
-                        <div class="space-y-4">
-                            <div class="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors">
-                                <h3 class="font-semibold text-gray-900 mb-2">Upload Foto Kunjungan</h3>
-                                <input type="file" id="fotoKunjungan" accept="image/*" class="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100">
-                                <p class="text-xs text-gray-500 mt-1">Format: JPG, PNG (Max 5MB)</p>
-                            </div>
+                    <!-- Content Dokumentasi -->
+                    <div id="contentDokumentasi" class="admin-content">
+                        <div id="adminDataList" class="space-y-3 max-h-96 overflow-y-auto">
+                            <p class="text-gray-600">Loading data dokumentasi...</p>
+                        </div>
+                    </div>
 
-                            <div class="border border-gray-200 rounded-lg p-4">
-                                <h3 class="font-semibold text-gray-900 mb-2">Catatan Kunjungan</h3>
-                                <textarea id="catatanKunjungan" rows="4" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" placeholder="Tulis catatan detail kunjungan hari ini..."></textarea>
-                            </div>
-
-                            <div class="border border-gray-200 rounded-lg p-4">
-                                <h3 class="font-semibold text-gray-900 mb-2">Lokasi Kunjungan</h3>
-                                <input type="text" id="lokasiKunjungan" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" placeholder="Alamat lengkap lokasi kunjungan">
-                            </div>
-
-                            <button id="simpanDokumentasi" class="w-full bg-green-600 text-white py-3 px-4 rounded-lg hover:bg-green-700 focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-colors font-medium">
-                                Simpan Dokumentasi
+                    <!-- Content Rekap Login -->
+                    <div id="contentRekapLogin" class="admin-content hidden">
+                        <div class="mb-4 flex flex-wrap gap-4">
+                            <select id="filterBranchLogin" class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500">
+                                <option value="">Semua Branch</option>
+                            </select>
+                            <input type="date" id="filterTanggalLogin" class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500">
+                            <button id="refreshRekapBtn" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors">
+                                <svg class="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                                </svg>
+                                Refresh Rekap
+                            </button>
+                            <button id="exportExcelBtn" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                                <svg class="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                </svg>
+                                Export Excel
+                            </button>
+                            <button id="exportCSVBtn" class="bg-orange-600 text-white px-4 py-2 rounded-lg hover:bg-orange-700 transition-colors">
+                                <svg class="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                </svg>
+                                Export CSV
                             </button>
                         </div>
-
-                        <!-- Status Dokumentasi -->
-                        <div id="statusDokumentasi" class="hidden mt-4 p-4 bg-green-50 border border-green-200 rounded-lg">
-                            <div class="flex items-center">
-                                <svg class="w-5 h-5 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                                </svg>
-                                <p class="text-green-700 font-medium">Dokumentasi berhasil disimpan!</p>
-                            </div>
+                        
+                        <div id="rekapLoginList" class="space-y-3 max-h-96 overflow-y-auto">
+                            <p class="text-gray-600">Loading rekap login MD...</p>
                         </div>
                     </div>
                 </div>
             </main>
         </div>
 
-        <!-- Admin Panel Modal -->
-        <div id="adminModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-            <div class="bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
-                <div class="p-6 border-b border-gray-200">
-                    <div class="flex justify-between items-center">
-                        <h2 class="text-2xl font-bold text-gray-900">Panel Admin - Kelola Jobdesk</h2>
-                        <button id="closeAdminModal" class="text-gray-400 hover:text-gray-600">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                            </svg>
-                        </button>
-                    </div>
-                </div>
-                
-                <div class="p-6">
-                    <!-- Password Input -->
-                    <div id="adminPasswordSection" class="mb-6">
-                        <label for="adminPassword" class="block text-sm font-medium text-gray-700 mb-2">Password Admin</label>
-                        <div class="flex space-x-2">
-                            <input type="password" id="adminPassword" class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500" placeholder="Masukkan password admin">
-                            <button id="verifyAdminBtn" class="bg-purple-600 text-white px-6 py-2 rounded-lg hover:bg-purple-700 transition-colors">
-                                Verifikasi
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- Admin Content (Hidden until verified) -->
-                    <div id="adminContent" class="hidden">
-                        <!-- Tab Navigation -->
-                        <div class="flex space-x-1 mb-6 bg-gray-100 p-1 rounded-lg">
-                            <button id="tabJobdesk" class="flex-1 py-2 px-4 rounded-md text-sm font-medium bg-white text-purple-600 shadow-sm">
-                                Edit Jobdesk
-                            </button>
-                            <button id="tabDokumentasi" class="flex-1 py-2 px-4 rounded-md text-sm font-medium text-gray-600 hover:text-gray-900">
-                                Kelola Dokumentasi
-                            </button>
-                            <button id="tabAbsensi" class="flex-1 py-2 px-4 rounded-md text-sm font-medium text-gray-600 hover:text-gray-900">
-                                Data Absensi
-                            </button>
-                        </div>
-
-                        <!-- Tab Content: Edit Jobdesk -->
-                        <div id="contentJobdesk" class="tab-content">
-                            <div class="bg-gray-50 rounded-lg p-6">
-                                <h3 class="text-lg font-semibold text-gray-900 mb-4">Edit Jobdesk MD</h3>
-                                <div class="space-y-4">
-                                    <div>
-                                        <label class="block text-sm font-medium text-gray-700 mb-2">Jobdesk 1</label>
-                                        <input type="text" id="jobdesk1Title" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500" value="CLEANING">
-                                        <textarea id="jobdesk1Desc" rows="2" class="w-full mt-2 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500" placeholder="Deskripsi jobdesk">Melakukan pembersihan produk,selving,profile</textarea>
-                                    </div>
-                                    
-                                    <div>
-                                        <label class="block text-sm font-medium text-gray-700 mb-2">Jobdesk 2</label>
-                                        <input type="text" id="jobdesk2Title" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500" value="CEK EXPIRED DATE">
-                                        <textarea id="jobdesk2Desc" rows="2" class="w-full mt-2 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500" placeholder="Deskripsi jobdesk">memeriksa expired date pada semua produk secara 1 per 1</textarea>
-                                    </div>
-                                    
-                                    <div>
-                                        <label class="block text-sm font-medium text-gray-700 mb-2">Jobdesk 3</label>
-                                        <input type="text" id="jobdesk3Title" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500" value="FIFO">
-                                        <textarea id="jobdesk3Desc" rows="2" class="w-full mt-2 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500" placeholder="Deskripsi jobdesk">melakukan switching pada semua produk menurut expired terdekat</textarea>
-                                    </div>
-                                    
-                                    <div>
-                                        <label class="block text-sm font-medium text-gray-700 mb-2">Jobdesk 4</label>
-                                        <input type="text" id="jobdesk4Title" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500" value="CEK PRICE CARD DAN POP">
-                                        <textarea id="jobdesk4Desc" rows="2" class="w-full mt-2 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500" placeholder="Deskripsi jobdesk">Memmastikan bahwa label sudah ada pada semua produk</textarea>
-                                    </div>
-                                    
-                                    <button id="updateJobdeskBtn" class="w-full bg-green-600 text-white py-3 px-4 rounded-lg hover:bg-green-700 transition-colors font-medium">
-                                        Update Jobdesk
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Tab Content: Kelola Dokumentasi -->
-                        <div id="contentDokumentasi" class="tab-content hidden">
-                            <div class="bg-gray-50 rounded-lg p-6">
-                                <div class="flex justify-between items-center mb-4">
-                                    <h3 class="text-lg font-semibold text-gray-900">Kelola Dokumentasi MD</h3>
-                                    <button id="refreshDokumentasiBtn" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
-                                        Refresh
-                                    </button>
-                                </div>
-                                
-                                <!-- Filter -->
-                                <div class="mb-4 flex space-x-2">
-                                    <select id="filterBranch" class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500">
-                                        <option value="">Semua Branch</option>
-                                    </select>
-                                    <input type="date" id="filterTanggal" class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500">
-                                </div>
-                                
-                                <!-- Dokumentasi List -->
-                                <div id="dokumentasiList" class="space-y-3 max-h-96 overflow-y-auto">
-                                    <p class="text-gray-600">Loading dokumentasi...</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Tab Content: Data Absensi -->
-                        <div id="contentAbsensi" class="tab-content hidden">
-                            <div class="bg-gray-50 rounded-lg p-6">
-                                <!-- Header dengan Query Controls -->
-                                <div class="flex flex-col lg:flex-row lg:justify-between lg:items-center mb-6 space-y-4 lg:space-y-0">
-                                    <h3 class="text-lg font-semibold text-gray-900">Data Absensi</h3>
-                                    
-                                    <!-- Query Controls -->
-                                    <div class="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3">
-                                        <div class="flex items-center space-x-2">
-                                            <label for="queryTanggal" class="text-sm font-medium text-gray-700 whitespace-nowrap">Pilih Tanggal:</label>
-                                            <input type="date" id="queryTanggal" class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-sm">
-                                        </div>
-                                        
-                                        <div class="flex space-x-2">
-                                            <button id="queryAbsensiBtn" class="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors text-sm font-medium">
-                                                Query Data
-                                            </button>
-                                            <button id="showTodayBtn" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors text-sm font-medium">
-                                                Hari Ini
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- Action Buttons -->
-                                <div class="flex justify-between items-center mb-4">
-                                    <div id="queryResultInfo" class="text-sm text-gray-600">
-                                        <!-- Info hasil query akan muncul di sini -->
-                                    </div>
-                                    <div class="flex space-x-2">
-                                        <button id="exportAbsensiBtn" class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors text-sm">
-                                            Export Data
-                                        </button>
-                                        <button id="clearAbsensiBtn" class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors text-sm">
-                                            Clear Data
-                                        </button>
-                                        <button id="refreshAttendanceBtn" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm">
-                                            Refresh
-                                        </button>
-                                    </div>
-                                </div>
-
-                                <!-- Data Display -->
-                                <div id="attendanceData" class="space-y-3">
-                                    <p class="text-gray-600">Loading data absensi...</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Modal Edit Dokumentasi -->
-        <div id="editDokumentasiModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+        <!-- Modal Dokumentasi -->
+        <div id="dokumentasiModal" class="hidden fixed inset-0 bg-black bg-opacity-50 modal-backdrop flex items-center justify-center p-4 z-50">
             <div class="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
                 <div class="p-6 border-b border-gray-200">
                     <div class="flex justify-between items-center">
-                        <h2 class="text-xl font-bold text-gray-900">Edit Dokumentasi</h2>
-                        <button id="closeEditModal" class="text-gray-400 hover:text-gray-600">
+                        <h2 class="text-xl font-bold text-gray-900" id="modalTitle">Dokumentasi Jobdesk</h2>
+                        <button id="closeDokumentasiModal" class="text-gray-400 hover:text-gray-600">
                             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                             </svg>
@@ -381,44 +346,63 @@
                 </div>
                 
                 <div class="p-6">
-                    <form id="editDokumentasiForm" class="space-y-4">
-                        <input type="hidden" id="editDokId">
+                    <form id="dokumentasiForm" class="space-y-6">
+                        <input type="hidden" id="jobdeskId">
+                        <input type="hidden" id="jobdeskTitle">
                         
+                        <!-- Foto Before -->
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Nama MD</label>
-                            <input type="text" id="editNama" class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100" readonly>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Foto Before (Sebelum)</label>
+                            <input type="file" id="fotoBefore" accept="image/*" class="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+                            <div id="previewBefore" class="mt-2 hidden">
+                                <img id="imgBefore" class="image-preview rounded-lg border">
+                            </div>
                         </div>
-                        
+
+                        <!-- Foto After -->
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Branch</label>
-                            <input type="text" id="editBranch" class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100" readonly>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Foto After (Sesudah)</label>
+                            <input type="file" id="fotoAfter" accept="image/*" class="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-green-50 file:text-green-700 hover:file:bg-green-100">
+                            <div id="previewAfter" class="mt-2 hidden">
+                                <img id="imgAfter" class="image-preview rounded-lg border">
+                            </div>
                         </div>
-                        
+
+                        <!-- Komentar -->
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Tanggal & Jam</label>
-                            <input type="text" id="editTanggalJam" class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100" readonly>
+                            <label for="komentar" class="block text-sm font-medium text-gray-700 mb-2">Komentar / Catatan</label>
+                            <textarea id="komentar" rows="4" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" placeholder="Berikan komentar atau catatan mengenai jobdesk yang telah diselesaikan..."></textarea>
                         </div>
-                        
+
+                        <!-- Lokasi -->
                         <div>
-                            <label for="editCatatan" class="block text-sm font-medium text-gray-700 mb-2">Catatan Kunjungan</label>
-                            <textarea id="editCatatan" rows="4" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"></textarea>
+                            <label for="lokasi" class="block text-sm font-medium text-gray-700 mb-2">Lokasi</label>
+                            <input type="text" id="lokasi" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" placeholder="Masukkan lokasi pelaksanaan jobdesk">
                         </div>
-                        
-                        <div>
-                            <label for="editLokasi" class="block text-sm font-medium text-gray-700 mb-2">Lokasi Kunjungan</label>
-                            <input type="text" id="editLokasi" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500">
+
+                        <!-- Status Koneksi -->
+                        <div id="connectionStatus" class="mb-4 p-3 rounded-lg border">
+                            <div class="flex items-center">
+                                <div id="connectionIndicator" class="w-3 h-3 rounded-full mr-2"></div>
+                                <span id="connectionText" class="text-sm font-medium">Memeriksa koneksi...</span>
+                            </div>
+                            <div id="retryInfo" class="hidden mt-2 text-xs text-gray-600">
+                                <span id="retryText">Mencoba menyimpan ke server...</span>
+                            </div>
                         </div>
-                        
-                        <div id="editFotoContainer" class="hidden">
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Foto Kunjungan</label>
-                            <img id="editFotoPreview" class="w-full max-w-xs rounded-lg border" alt="Foto Kunjungan">
-                        </div>
-                        
+
                         <div class="flex space-x-3 pt-4">
-                            <button type="submit" class="flex-1 bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition-colors">
-                                Simpan Perubahan
+                            <button type="submit" class="flex-1 bg-green-600 text-white py-3 px-4 rounded-lg hover:bg-green-700 transition-colors font-medium">
+                                <span id="submitDokText">Simpan Dokumentasi</span>
+                                <span id="submitDokLoading" class="hidden">
+                                    <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                    </svg>
+                                    Menyimpan...
+                                </span>
                             </button>
-                            <button type="button" id="cancelEditBtn" class="flex-1 bg-gray-500 text-white py-2 px-4 rounded-lg hover:bg-gray-600 transition-colors">
+                            <button type="button" id="cancelDokBtn" class="flex-1 bg-gray-500 text-white py-3 px-4 rounded-lg hover:bg-gray-600 transition-colors font-medium">
                                 Batal
                             </button>
                         </div>
@@ -440,121 +424,97 @@
     <script>
         // URL Google Sheets untuk mengambil data langsung
         const SPREADSHEET_ID = '17pU_5UwX-z6UVaWlXrsqsXDHgj2FFPkFxXNCBBAZc8Y';
-        const SHEET_NAME = 'Sheet1'; // Ganti dengan nama sheet yang sesuai
-        const SHEETS_URL = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:json&sheet=${SHEET_NAME}`;
+        const MD_SHEET_NAME = 'Sheet1'; // Sheet untuk data MD
+        const DOKUMENTASI_SHEET_NAME = 'Dokumentasi'; // Sheet untuk dokumentasi
+        const MD_SHEETS_URL = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:json&sheet=${MD_SHEET_NAME}`;
         
-        // Apps Script URL untuk mencatat absensi
-        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx7RpeDYqrQyclgc96Tjzb7Ver3hIsjmsfSjr_iW8cPX4DWaTShQHVlanpC09WjumpEvQ/exec';
+        // Apps Script URL untuk menyimpan dokumentasi - UPDATED URL
+        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyzInmMWwqtStVskCdKXyBe7cr9UQ59VFYf5WwGWKRDhZi7Ln81jjYDevHq_udcyDmhAg/exec';
         
-        // Admin credentials (ganti dengan password yang Anda inginkan)
-        const ADMIN_PASSWORD = 'padalarang123';
+        // Admin credentials
+        const ADMIN_USERNAME = 'admin';
+        const ADMIN_PASSWORD = 'admin123';
+        
+        // Fixed Jobdesk Data (tidak dapat diubah kecuali melalui code)
+        const FIXED_JOBDESK = [
+            {
+                id: 1,
+                title: "CLEANING",
+                desc: "Lakukan pembersihan pada produk, shelving, dan profile",
+                color: "blue",
+                icon: "M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+            },
+            {
+                id: 2,
+                title: "CEK EXPIRED DATE",
+                desc: "Lakukan pengecekan expired date produk pada semua produk yang ada",
+                color: "red",
+                icon: "M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+            },
+            {
+                id: 3,
+                title: "FIFO",
+                desc: "Lakukan switching pada pajangan agar (pertama masuk = pertama keluar) sesuaikan dengan expired terdekat",
+                color: "yellow",
+                icon: "M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"
+            },
+            {
+                id: 4,
+                title: "CEK PRICE CARD DAN POP",
+                desc: "Lakukan pengecekan dan pastikan setiap barang ada dan sesuai dengan label harga",
+                color: "green",
+                icon: "M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+            }
+        ];
         
         // Cache untuk menyimpan data MD
         let registeredMDs = [];
         let isDataLoaded = false;
-
-        // Storage untuk data absensi dan dokumentasi
-        let absensiData = JSON.parse(localStorage.getItem('absensiData') || '[]');
-        let dokumentasiData = JSON.parse(localStorage.getItem('dokumentasiData') || '[]');
+        let currentMD = null;
+        let completedJobdesk = JSON.parse(localStorage.getItem('completedJobdesk') || '{}');
         
-        // Storage untuk jobdesk yang dapat disinkronisasi
-        let jobdeskData = JSON.parse(localStorage.getItem('jobdeskData') || JSON.stringify([
-            {
-                title: "CLEANING",
-                desc: "Melakukan pembersihan produk,selving,profile",
-                color: "blue"
-            },
-            {
-                title: "CEK EXPIRED DATE",
-                desc: "memeriksa expired date pada semua produk secara 1 per 1",
-                color: "green"
-            },
-            {
-                title: "FIFO",
-                desc: "melakukan switching pada semua produk menurut expired terdekat",
-                color: "yellow"
-            },
-            {
-                title: "CEK PRICE CARD DAN POP",
-                desc: "Memmastikan bahwa label sudah ada pada semua produk",
-                color: "purple"
-            }
-        ]));
-        
-        // Interval untuk cek perubahan jobdesk
-        let jobdeskSyncInterval;
+        // Sistem tracking waktu login
+        let loginSessions = JSON.parse(localStorage.getItem('loginSessions') || '{}');
+        let currentLoginTime = null;
+        let workDurationInterval = null;
 
         // Elements
         const loginPage = document.getElementById('loginPage');
+        const adminLoginPage = document.getElementById('adminLoginPage');
         const dashboardPage = document.getElementById('dashboardPage');
+        const adminDashboardPage = document.getElementById('adminDashboardPage');
         const absenForm = document.getElementById('absenForm');
+        const adminLoginForm = document.getElementById('adminLoginForm');
         const errorMessage = document.getElementById('errorMessage');
+        const adminErrorMessage = document.getElementById('adminErrorMessage');
         const welcomeText = document.getElementById('welcomeText');
         const branchText = document.getElementById('branchText');
         const logoutBtn = document.getElementById('logoutBtn');
-        const simpanDokumentasi = document.getElementById('simpanDokumentasi');
-        const statusDokumentasi = document.getElementById('statusDokumentasi');
+        const adminLogoutBtn = document.getElementById('adminLogoutBtn');
+        const adminLoginBtn = document.getElementById('adminLoginBtn');
+        const backToMDLoginBtn = document.getElementById('backToMDLoginBtn');
+        const jobdeskContainer = document.getElementById('jobdeskContainer');
 
-        // Fungsi untuk mengambil data langsung dari Google Sheets
+        // Modal elements
+        const dokumentasiModal = document.getElementById('dokumentasiModal');
+        const closeDokumentasiModal = document.getElementById('closeDokumentasiModal');
+        const dokumentasiForm = document.getElementById('dokumentasiForm');
+        const cancelDokBtn = document.getElementById('cancelDokBtn');
+
+        // Fungsi untuk mengambil data MD dari Google Sheets
         async function loadMDDataFromSheets() {
             try {
-                console.log('Mencoba mengambil data langsung dari Google Sheets...');
-                console.log('URL:', SHEETS_URL);
+                console.log('🔄 Mencoba mengambil data MD dari Google Sheets...');
+                console.log('📋 URL yang digunakan:', MD_SHEETS_URL);
                 
-                const response = await fetch(SHEETS_URL);
-                
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                
-                const text = await response.text();
-                // Parse Google Sheets JSON response
-                const jsonText = text.substring(47).slice(0, -2); // Remove Google's wrapper
-                const data = JSON.parse(jsonText);
-                
-                console.log('Raw data dari Google Sheets:', data);
-                
-                if (data.table && data.table.rows) {
-                    const rows = data.table.rows;
-                    registeredMDs = [];
-                    
-                    // Skip header row (index 0) dan mulai dari row 1
-                    for (let i = 1; i < rows.length; i++) {
-                        const row = rows[i];
-                        if (row.c && row.c.length >= 2) {
-                            const nama = row.c[0] && row.c[0].v ? row.c[0].v.toString().trim() : '';
-                            const branch = row.c[1] && row.c[1].v ? row.c[1].v.toString().trim() : '';
-                            
-                            if (nama && branch) {
-                                registeredMDs.push({ nama, branch });
-                            }
-                        }
-                    }
-                    
-                    isDataLoaded = true;
-                    console.log('Data MD berhasil dimuat dari Sheets:', registeredMDs.length, 'records');
-                    console.log('Data yang dimuat:', registeredMDs);
-                    showSuccess(`Data berhasil dimuat: ${registeredMDs.length} MD terdaftar`);
-                    return true;
-                } else {
-                    throw new Error('Format data tidak valid dari Google Sheets');
-                }
-            } catch (error) {
-                console.error('Error loading data dari Google Sheets:', error);
-                return false;
-            }
-        }
-
-        // Fungsi untuk mengambil data dari Apps Script (fallback)
-        async function loadMDDataFromAppsScript() {
-            try {
-                console.log('Mencoba mengambil data dari Apps Script:', APPS_SCRIPT_URL);
-                
-                const response = await fetch(APPS_SCRIPT_URL, {
+                const response = await fetch(MD_SHEETS_URL, {
                     method: 'GET',
                     mode: 'cors',
+                    cache: 'no-cache',
+                    credentials: 'omit',
                     headers: {
-                        'Content-Type': 'application/json',
+                        'Accept': 'application/json, text/plain, */*',
+                        'Content-Type': 'application/json'
                     }
                 });
                 
@@ -562,81 +522,498 @@
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
                 
-                const data = await response.json();
-                console.log('Response dari Apps Script:', data);
+                const text = await response.text();
+                console.log('📄 Raw response dari Google Sheets:', text.substring(0, 200) + '...');
                 
-                if (data && data.success && Array.isArray(data.data)) {
-                    registeredMDs = data.data;
+                const jsonText = text.substring(47).slice(0, -2);
+                const data = JSON.parse(jsonText);
+                
+                console.log('📊 Parsed data dari Google Sheets:', data);
+                
+                if (data.table && data.table.rows) {
+                    const rows = data.table.rows;
+                    registeredMDs = [];
+                    
+                    console.log('📝 Total rows ditemukan:', rows.length);
+                    
+                    // Skip header row (index 0) dan mulai dari row 1
+                    for (let i = 1; i < rows.length; i++) {
+                        const row = rows[i];
+                        console.log(`🔍 Processing row ${i}:`, row);
+                        
+                        if (row.c && row.c.length >= 2) {
+                            const nama = row.c[0] && row.c[0].v ? row.c[0].v.toString().trim() : '';
+                            const branch = row.c[1] && row.c[1].v ? row.c[1].v.toString().trim() : '';
+                            
+                            console.log(`   - Nama: "${nama}", Branch: "${branch}"`);
+                            
+                            if (nama && branch) {
+                                registeredMDs.push({ nama, branch });
+                                console.log(`   ✅ Data valid ditambahkan: ${nama} - ${branch}`);
+                            } else {
+                                console.log(`   ❌ Data tidak valid (kosong)`);
+                            }
+                        } else {
+                            console.log(`   ❌ Row tidak memiliki cukup kolom`);
+                        }
+                    }
+                    
                     isDataLoaded = true;
-                    console.log('Data MD berhasil dimuat dari Apps Script:', registeredMDs.length, 'records');
-                    showSuccess(`Data berhasil dimuat: ${registeredMDs.length} MD terdaftar`);
+                    console.log('✅ Data MD berhasil dimuat dari Sheets:', registeredMDs.length, 'records');
+                    console.log('📋 Data yang berhasil dimuat:', registeredMDs);
                     return true;
                 } else {
-                    throw new Error(data.message || 'Format data tidak valid');
+                    throw new Error('Format data tidak valid dari Google Sheets - tidak ada table.rows');
                 }
             } catch (error) {
-                console.error('Error loading MD data dari Apps Script:', error);
-                return false;
-            }
-        }
-
-        // Fungsi untuk verifikasi data MD
-        function verifyMDData(nama, branch) {
-            console.log('Memverifikasi data MD...');
-            console.log('Input - Nama:', `"${nama}"`, 'Branch:', `"${branch}"`);
-            
-            const mdFound = registeredMDs.find(md => {
-                if (!md.nama || !md.branch) {
-                    return false;
-                }
+                console.error('❌ Error loading data MD dari Google Sheets:', error);
+                console.log('⚠️ Menggunakan data fallback untuk testing...');
                 
-                const namaMatch = md.nama.toLowerCase().trim() === nama.toLowerCase();
-                const branchMatch = md.branch.toLowerCase().trim() === branch.toLowerCase();
-                
-                console.log(`Checking: "${md.nama}" vs "${nama}" = ${namaMatch}`);
-                console.log(`Checking: "${md.branch}" vs "${branch}" = ${branchMatch}`);
-                
-                return namaMatch && branchMatch;
-            });
-            
-            return mdFound;
-        }
-
-        // Fungsi utama untuk mengambil data (coba Sheets dulu, lalu Apps Script)
-        async function loadMDData() {
-            try {
-                // Coba ambil data langsung dari Google Sheets dulu
-                const sheetsSuccess = await loadMDDataFromSheets();
-                
-                if (!sheetsSuccess) {
-                    console.log('Gagal dari Sheets, mencoba Apps Script...');
-                    const appsScriptSuccess = await loadMDDataFromAppsScript();
-                    
-                    if (!appsScriptSuccess) {
-                        throw new Error('Gagal mengambil data dari kedua sumber');
-                    }
-                }
-            } catch (error) {
-                console.error('Error loading MD data:', error);
-                
-                // Gunakan data fallback untuk testing
+                // Gunakan data fallback yang lebih lengkap
                 registeredMDs = [
                     { nama: "Ahmad Rizki", branch: "Jakarta Pusat" },
                     { nama: "Siti Nurhaliza", branch: "Jakarta Selatan" },
                     { nama: "Budi Santoso", branch: "Jakarta Utara" },
                     { nama: "Maya Sari", branch: "Jakarta Barat" },
-                    { nama: "Test User", branch: "Bandung" }
+                    { nama: "Test User", branch: "Bandung" },
+                    { nama: "John Doe", branch: "Surabaya" },
+                    { nama: "Jane Smith", branch: "Medan" }
                 ];
                 isDataLoaded = true;
+                console.log('✅ Data fallback berhasil dimuat:', registeredMDs.length, 'records');
+                console.log('📋 Data fallback:', registeredMDs);
+                return true;
+            }
+        }
+
+        // Fungsi untuk memulai tracking waktu kerja
+        function startWorkDurationTracking() {
+            currentLoginTime = new Date();
+            const today = new Date().toLocaleDateString('id-ID');
+            const mdKey = `${currentMD.nama}_${currentMD.branch}_${today}`;
+            
+            if (!loginSessions[mdKey]) {
+                loginSessions[mdKey] = {
+                    nama: currentMD.nama,
+                    branch: currentMD.branch,
+                    tanggal: today,
+                    loginTime: currentLoginTime.toISOString(),
+                    logoutTime: null,
+                    totalDuration: 0
+                };
+            } else {
+                // Update login time jika login ulang di hari yang sama
+                loginSessions[mdKey].loginTime = currentLoginTime.toISOString();
+                loginSessions[mdKey].logoutTime = null;
+            }
+            
+            localStorage.setItem('loginSessions', JSON.stringify(loginSessions));
+            
+            // Save attendance to Google Sheets
+            saveAttendanceToSheets('login');
+            
+            // Start interval untuk update durasi real-time
+            workDurationInterval = setInterval(updateWorkDuration, 1000);
+        }
+        
+        // Fungsi untuk menghitung dan menampilkan durasi kerja
+        function updateWorkDuration() {
+            if (!currentLoginTime) return;
+            
+            const now = new Date();
+            const duration = now - currentLoginTime;
+            
+            const hours = Math.floor(duration / (1000 * 60 * 60));
+            const minutes = Math.floor((duration % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((duration % (1000 * 60)) / 1000);
+            
+            const durationText = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            
+            // Update display jika ada element untuk menampilkan durasi
+            const durationElement = document.getElementById('workDuration');
+            if (durationElement) {
+                durationElement.textContent = durationText;
+            }
+        }
+        
+        // Fungsi untuk menghentikan tracking waktu kerja
+        function stopWorkDurationTracking() {
+            if (workDurationInterval) {
+                clearInterval(workDurationInterval);
+                workDurationInterval = null;
+            }
+            
+            if (currentLoginTime && currentMD) {
+                const logoutTime = new Date();
+                const today = new Date().toLocaleDateString('id-ID');
+                const mdKey = `${currentMD.nama}_${currentMD.branch}_${today}`;
                 
-                showError('Menggunakan data demo. Periksa koneksi ke spreadsheet Anda.');
-                console.log('Menggunakan data fallback:', registeredMDs);
+                if (loginSessions[mdKey]) {
+                    loginSessions[mdKey].logoutTime = logoutTime.toISOString();
+                    loginSessions[mdKey].totalDuration = logoutTime - currentLoginTime;
+                    localStorage.setItem('loginSessions', JSON.stringify(loginSessions));
+                    
+                    // Save logout attendance to Google Sheets
+                    saveAttendanceToSheets('logout');
+                }
+            }
+            
+            currentLoginTime = null;
+        }
+        
+        // Fungsi untuk format durasi dalam jam:menit:detik
+        function formatDuration(milliseconds) {
+            const hours = Math.floor(milliseconds / (1000 * 60 * 60));
+            const minutes = Math.floor((milliseconds % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((milliseconds % (1000 * 60)) / 1000);
+            
+            return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        }
+
+        // Fungsi untuk verifikasi data MD
+        function verifyMDData(nama, branch) {
+            console.log('🔍 Memverifikasi data MD...');
+            console.log('📝 Input yang diterima:');
+            console.log(`   - Nama: "${nama}"`);
+            console.log(`   - Branch: "${branch}"`);
+            console.log('📋 Data MD yang tersedia untuk verifikasi:');
+            
+            registeredMDs.forEach((md, index) => {
+                console.log(`   ${index + 1}. Nama: "${md.nama}" | Branch: "${md.branch}"`);
+            });
+            
+            const mdFound = registeredMDs.find(md => {
+                if (!md.nama || !md.branch) {
+                    console.log(`❌ Data MD tidak valid: nama="${md.nama}", branch="${md.branch}"`);
+                    return false;
+                }
+                
+                const namaMatch = md.nama.toLowerCase().trim() === nama.toLowerCase().trim();
+                const branchMatch = md.branch.toLowerCase().trim() === branch.toLowerCase().trim();
+                
+                console.log(`🔍 Checking: "${md.nama}" vs "${nama}"`);
+                console.log(`   - Nama match: ${namaMatch} (${md.nama.toLowerCase().trim()} === ${nama.toLowerCase().trim()})`);
+                console.log(`   - Branch match: ${branchMatch} (${md.branch.toLowerCase().trim()} === ${branch.toLowerCase().trim()})`);
+                console.log(`   - Overall match: ${namaMatch && branchMatch}`);
+                
+                return namaMatch && branchMatch;
+            });
+            
+            if (mdFound) {
+                console.log('✅ VERIFIKASI BERHASIL! MD ditemukan:', mdFound);
+            } else {
+                console.log('❌ VERIFIKASI GAGAL! MD tidak ditemukan dalam database');
+                console.log('💡 Pastikan nama dan branch sesuai dengan data di spreadsheet');
+            }
+            
+            return mdFound;
+        }
+
+        // Fungsi untuk menampilkan jobdesk
+        function displayJobdesk() {
+            const today = new Date().toLocaleDateString('id-ID');
+            const mdKey = `${currentMD.nama}_${currentMD.branch}_${today}`;
+            const completed = completedJobdesk[mdKey] || {};
+            
+            jobdeskContainer.innerHTML = '';
+            
+            FIXED_JOBDESK.forEach(jobdesk => {
+                const isCompleted = completed[jobdesk.id] || false;
+                const jobdeskElement = document.createElement('div');
+                jobdeskElement.className = `border-l-4 border-${jobdesk.color}-500 bg-${jobdesk.color}-50 p-6 rounded-lg`;
+                
+                jobdeskElement.innerHTML = `
+                    <div class="flex items-start justify-between">
+                        <div class="flex-1">
+                            <div class="flex items-center mb-3">
+                                <div class="bg-${jobdesk.color}-100 w-10 h-10 rounded-lg flex items-center justify-center mr-3">
+                                    <svg class="w-5 h-5 text-${jobdesk.color}-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="${jobdesk.icon}"></path>
+                                    </svg>
+                                </div>
+                                <h3 class="text-lg font-semibold text-gray-900">${jobdesk.title}</h3>
+                            </div>
+                            <p class="text-gray-600 mb-4">${jobdesk.desc}</p>
+                            
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center">
+                                    <input type="checkbox" id="task${jobdesk.id}" ${isCompleted ? 'checked' : ''} 
+                                           onchange="toggleJobdesk(${jobdesk.id})" 
+                                           class="mr-3 h-5 w-5 text-${jobdesk.color}-600 rounded focus:ring-${jobdesk.color}-500">
+                                    <label for="task${jobdesk.id}" class="text-sm font-medium ${isCompleted ? 'text-gray-400 line-through' : 'text-gray-700'}">
+                                        ${isCompleted ? 'Selesai' : 'Belum Selesai'}
+                                    </label>
+                                </div>
+                                
+                                ${isCompleted ? `
+                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                        ✓ Terdokumentasi
+                                    </span>
+                                ` : `
+                                    <button onclick="openDokumentasiModal(${jobdesk.id}, '${jobdesk.title}')" 
+                                            class="bg-${jobdesk.color}-600 text-white px-4 py-2 rounded-lg hover:bg-${jobdesk.color}-700 transition-colors text-sm font-medium">
+                                        Dokumentasi
+                                    </button>
+                                `}
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                jobdeskContainer.appendChild(jobdeskElement);
+            });
+        }
+
+        // Fungsi untuk toggle jobdesk completion
+        function toggleJobdesk(jobdeskId) {
+            const checkbox = document.getElementById(`task${jobdeskId}`);
+            const today = new Date().toLocaleDateString('id-ID');
+            const mdKey = `${currentMD.nama}_${currentMD.branch}_${today}`;
+            
+            if (!completedJobdesk[mdKey]) {
+                completedJobdesk[mdKey] = {};
+            }
+            
+            if (checkbox.checked) {
+                // Jika dicentang, buka modal dokumentasi
+                openDokumentasiModal(jobdeskId, FIXED_JOBDESK.find(j => j.id === jobdeskId).title);
+                checkbox.checked = false; // Reset checkbox sampai dokumentasi selesai
+            } else {
+                // Jika di-uncheck, hapus dari completed
+                delete completedJobdesk[mdKey][jobdeskId];
+                localStorage.setItem('completedJobdesk', JSON.stringify(completedJobdesk));
+                displayJobdesk();
+            }
+        }
+
+        // Fungsi untuk update status koneksi
+        function updateConnectionStatus() {
+            const indicator = document.getElementById('connectionIndicator');
+            const text = document.getElementById('connectionText');
+            const retryInfo = document.getElementById('retryInfo');
+            const status = document.getElementById('connectionStatus');
+            
+            if (!indicator || !text || !status) return;
+            
+            const isOnline = navigator.onLine;
+            
+            if (isOnline) {
+                indicator.className = 'w-3 h-3 rounded-full mr-2 bg-green-500';
+                text.textContent = 'Koneksi internet tersedia';
+                text.className = 'text-sm font-medium text-green-700';
+                status.className = 'mb-4 p-3 rounded-lg border border-green-200 bg-green-50';
+                retryInfo.classList.add('hidden');
+            } else {
+                indicator.className = 'w-3 h-3 rounded-full mr-2 bg-red-500';
+                text.textContent = 'Tidak ada koneksi internet';
+                text.className = 'text-sm font-medium text-red-700';
+                status.className = 'mb-4 p-3 rounded-lg border border-red-200 bg-red-50';
+                retryInfo.classList.add('hidden');
+            }
+        }
+        
+        // Fungsi untuk update status retry
+        function updateRetryStatus(attempt, maxRetries, errorType) {
+            const retryInfo = document.getElementById('retryInfo');
+            const retryText = document.getElementById('retryText');
+            const indicator = document.getElementById('connectionIndicator');
+            const text = document.getElementById('connectionText');
+            const status = document.getElementById('connectionStatus');
+            
+            if (!retryInfo || !retryText) return;
+            
+            retryInfo.classList.remove('hidden');
+            retryText.textContent = `Percobaan ${attempt}/${maxRetries} - ${getRetryMessage(errorType)}`;
+            
+            // Update indicator to yellow during retry
+            indicator.className = 'w-3 h-3 rounded-full mr-2 bg-yellow-500';
+            text.textContent = 'Mencoba menyimpan ke server...';
+            text.className = 'text-sm font-medium text-yellow-700';
+            status.className = 'mb-4 p-3 rounded-lg border border-yellow-200 bg-yellow-50';
+        }
+        
+        // Fungsi untuk mendapatkan pesan retry berdasarkan jenis error
+        function getRetryMessage(errorType) {
+            switch (errorType) {
+                case 'timeout':
+                    return 'Server lambat merespons, mencoba lagi...';
+                case 'network':
+                    return 'Masalah jaringan, mencoba lagi...';
+                case 'ratelimit':
+                    return 'Terlalu banyak permintaan, menunggu...';
+                case 'server':
+                    return 'Server bermasalah, mencoba lagi...';
+                default:
+                    return 'Mencoba menyimpan ulang...';
+            }
+        }
+
+        // Fungsi untuk membuka modal dokumentasi
+        function openDokumentasiModal(jobdeskId, jobdeskTitle) {
+            document.getElementById('jobdeskId').value = jobdeskId;
+            document.getElementById('jobdeskTitle').value = jobdeskTitle;
+            document.getElementById('modalTitle').textContent = `Dokumentasi: ${jobdeskTitle}`;
+            
+            // Reset form
+            dokumentasiForm.reset();
+            document.getElementById('previewBefore').classList.add('hidden');
+            document.getElementById('previewAfter').classList.add('hidden');
+            
+            // Update connection status saat modal dibuka
+            updateConnectionStatus();
+            
+            dokumentasiModal.classList.remove('hidden');
+        }
+
+        // Fungsi untuk menyimpan absensi ke Google Sheets
+        async function saveAttendanceToSheets(type) {
+            try {
+                console.log(`🔄 Menyimpan absensi ${type} ke Google Sheets...`);
+                
+                const attendanceData = {
+                    nama: currentMD.nama,
+                    branch: currentMD.branch,
+                    tanggal: new Date().toLocaleDateString('id-ID'),
+                    jam: new Date().toLocaleTimeString('id-ID'),
+                    type: type, // 'login' atau 'logout'
+                    timestamp: new Date().toISOString()
+                };
+                
+                console.log('📤 Data absensi yang akan dikirim:', attendanceData);
+                
+                const response = await fetch(APPS_SCRIPT_URL, {
+                    method: 'POST',
+                    mode: 'cors',
+                    cache: 'no-cache',
+                    credentials: 'omit',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        action: 'saveAbsensi',
+                        data: attendanceData
+                    })
+                });
+
+                console.log('📥 Response status:', response.status);
+                
+                const result = await response.json();
+                console.log('📋 Response dari Apps Script:', result);
+                
+                if (result.success) {
+                    console.log(`✅ Absensi ${type} berhasil disimpan ke Google Sheets`);
+                    return true;
+                } else {
+                    console.error(`❌ Gagal menyimpan absensi ${type}:`, result.message);
+                    return false;
+                }
+            } catch (error) {
+                console.error(`❌ Error menyimpan absensi ${type}:`, error);
+                return false;
+            }
+        }
+
+        // Fungsi untuk menyimpan dokumentasi ke Google Sheets - FALLBACK TO LOCAL STORAGE
+        async function saveDokumentasiToSheets(dokumentasiData) {
+            console.log('🔄 Mencoba menyimpan dokumentasi...');
+            
+            // Check network connectivity first
+            const isOnline = navigator.onLine;
+            console.log('🌐 Network status:', isOnline ? 'Online' : 'Offline');
+            
+            if (!isOnline) {
+                throw new Error('Tidak ada koneksi internet. Dokumentasi akan disimpan secara lokal.');
+            }
+            
+            try {
+                console.log('📤 Mencoba menyimpan ke Google Sheets...');
+                
+                const requestPayload = {
+                    action: 'saveDokumentasi',
+                    data: dokumentasiData
+                };
+                
+                // Try with a simple fetch first
+                const response = await fetch(APPS_SCRIPT_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(requestPayload)
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const result = await response.json();
+                
+                if (result && result.success) {
+                    console.log('✅ Dokumentasi berhasil disimpan ke Google Sheets');
+                    return true;
+                } else {
+                    throw new Error(result?.message || 'Server error');
+                }
+                
+            } catch (error) {
+                console.error('❌ Gagal menyimpan ke Google Sheets:', error.message);
+                
+                // CORS atau network error - fallback ke local storage
+                if (error.message.includes('CORS') || 
+                    error.message.includes('Failed to fetch') || 
+                    error.message.includes('NetworkError') ||
+                    error.message.includes('blocked')) {
+                    
+                    console.log('⚠️ CORS/Network issue detected - using local storage fallback');
+                    throw new Error('Server tidak dapat diakses saat ini. Dokumentasi akan disimpan secara lokal dan akan dikirim otomatis saat server tersedia kembali.');
+                } else {
+                    throw error;
+                }
+            }
+        }
+
+        // Fungsi untuk mengatur loading state dokumentasi
+        function setDokumentasiLoadingState(isLoading) {
+            const submitText = document.getElementById('submitDokText');
+            const submitLoading = document.getElementById('submitDokLoading');
+            const submitBtn = dokumentasiForm.querySelector('button[type="submit"]');
+            
+            if (isLoading) {
+                submitBtn.disabled = true;
+                submitText.classList.add('hidden');
+                submitLoading.classList.remove('hidden');
+            } else {
+                submitBtn.disabled = false;
+                submitText.classList.remove('hidden');
+                submitLoading.classList.add('hidden');
             }
         }
 
         // Fungsi untuk menampilkan pesan error
         function showError(message) {
-            const errorDiv = document.getElementById('errorMessage');
+            console.log('❌ Showing error:', message);
+            
+            // Create error notification
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'fixed top-4 right-4 bg-red-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 slide-up';
+            errorDiv.innerHTML = `
+                <div class="flex items-center">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    <span class="font-medium">${message}</span>
+                </div>
+            `;
+            document.body.appendChild(errorDiv);
+            
+            setTimeout(() => {
+                errorDiv.remove();
+            }, 5000);
+        }
+
+        // Fungsi untuk menampilkan pesan error admin
+        function showAdminError(message) {
+            const errorDiv = document.getElementById('adminErrorMessage');
             const errorText = errorDiv.querySelector('p');
             errorText.textContent = message;
             errorDiv.classList.remove('hidden');
@@ -648,95 +1025,24 @@
 
         // Fungsi untuk menampilkan pesan sukses
         function showSuccess(message) {
-            // Buat elemen sukses jika belum ada
-            let successDiv = document.getElementById('successMessage');
-            if (!successDiv) {
-                successDiv = document.createElement('div');
-                successDiv.id = 'successMessage';
-                successDiv.className = 'hidden mt-4 p-4 bg-green-50 border border-green-200 rounded-lg slide-up';
-                successDiv.innerHTML = `
-                    <div class="flex items-center">
-                        <svg class="w-5 h-5 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                        </svg>
-                        <p class="text-green-700 font-medium">${message}</p>
-                    </div>
-                `;
-                absenForm.parentNode.appendChild(successDiv);
-            } else {
-                successDiv.querySelector('p').textContent = message;
-            }
+            console.log('✅ Showing success:', message);
             
-            successDiv.classList.remove('hidden');
+            // Create success notification
+            const successDiv = document.createElement('div');
+            successDiv.className = 'fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 slide-up';
+            successDiv.innerHTML = `
+                <div class="flex items-center">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                    </svg>
+                    <span class="font-medium">${message}</span>
+                </div>
+            `;
+            document.body.appendChild(successDiv);
             
             setTimeout(() => {
-                successDiv.classList.add('hidden');
+                successDiv.remove();
             }, 3000);
-        }
-
-        // Load data saat halaman dimuat
-        window.addEventListener('load', function() {
-            loadMDData();
-            loadJobdeskFromStorage(); // Load jobdesk dari storage
-        });
-        
-        // Fungsi untuk memuat jobdesk dari localStorage
-        //function loadJobdeskFromStorage() {
-            updateJobdeskDisplay(jobdeskData);
-        }
-        
-        // Fungsi untuk memulai sinkronisasi jobdesk real-time
-        //function startJobdeskSync() {
-            // Cek perubahan jobdesk setiap 2 detik
-            jobdeskSyncInterval = setInterval(() => {
-                const currentJobdesk = JSON.parse(localStorage.getItem('jobdeskData') || '[]');
-                
-                // Bandingkan dengan jobdesk yang ada di memori
-               // if (JSON.stringify(currentJobdesk) !== JSON.stringify(jobdeskData)) {
-                    console.log('🔄 Jobdesk berubah, melakukan sinkronisasi...');
-                    jobdeskData = currentJobdesk;
-                    updateJobdeskDisplay(jobdeskData);
-                    
-                    // Tampilkan notifikasi perubahan
-                    showJobdeskUpdateNotification();
-                }
-            }, 2000);
-        }
-        
-        // Fungsi untuk menghentikan sinkronisasi
-        function stopJobdeskSync() {
-            if (jobdeskSyncInterval) {
-                clearInterval(jobdeskSyncInterval);
-                jobdeskSyncInterval = null;
-            }
-        }
-        
-        // Fungsi untuk menampilkan notifikasi update jobdesk
-        function showJobdeskUpdateNotification() {
-            // Buat elemen notifikasi
-            let notification = document.getElementById('jobdeskUpdateNotification');
-            if (!notification) {
-                notification = document.createElement('div');
-                notification.id = 'jobdeskUpdateNotification';
-                notification.className = 'fixed top-4 right-4 bg-blue-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 slide-up';
-                notification.innerHTML = `
-                    <div class="flex items-center">
-                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
-                        </svg>
-                        <span class="font-medium">Jobdesk telah diperbarui oleh Admin!</span>
-                    </div>
-                `;
-                document.body.appendChild(notification);
-            }
-            
-            // Tampilkan notifikasi
-            notification.classList.remove('hidden');
-            
-            // Sembunyikan setelah 4 detik
-            setTimeout(() => {
-                notification.classList.add('hidden');
-            }, 4000);
         }
 
         // Fungsi untuk mengatur loading state
@@ -756,6 +1062,29 @@
             }
         }
 
+        // Load data saat halaman dimuat
+        window.addEventListener('load', async function() {
+            console.log('🚀 Halaman dimuat, memulai inisialisasi...');
+            await loadMDDataFromSheets();
+        });
+
+        // Monitor perubahan status koneksi
+        window.addEventListener('online', function() {
+            console.log('🌐 Koneksi internet kembali tersedia');
+            updateConnectionStatus();
+            
+            // Show notification
+            showSuccess('🌐 Koneksi internet kembali tersedia!');
+        });
+
+        window.addEventListener('offline', function() {
+            console.log('🌐 Koneksi internet terputus');
+            updateConnectionStatus();
+            
+            // Show notification
+            showError('🌐 Koneksi internet terputus. Data akan disimpan secara lokal.');
+        });
+
         // Handle form submission
         absenForm.addEventListener('submit', async function(e) {
             e.preventDefault();
@@ -763,842 +1092,542 @@
             const nama = document.getElementById('nama').value.trim();
             const branch = document.getElementById('branch').value.trim();
             
-            console.log('Input yang dimasukkan:');
-            console.log('- Nama:', `"${nama}"`);
-            console.log('- Branch:', `"${branch}"`);
+            if (!nama || !branch) {
+                showError('Harap isi nama dan branch!');
+                return;
+            }
             
             setLoadingState(true);
             
             try {
-                // Cek apakah data sudah dimuat
                 if (!isDataLoaded) {
-                    await loadMDData();
-                    if (!isDataLoaded) {
-                        return;
-                    }
+                    await loadMDDataFromSheets();
                 }
                 
-                console.log('Data yang tersedia di spreadsheet:');
-                registeredMDs.forEach((md, index) => {
-                    console.log(`${index + 1}. Nama: "${md.nama}" | Branch: "${md.branch}"`);
-                });
-                
-                // Verifikasi data MD
                 const mdFound = verifyMDData(nama, branch);
                 
                 if (mdFound) {
-                    console.log('✅ Verifikasi berhasil! MD ditemukan:', mdFound);
-                    
-                    // Catat absensi otomatis
-                    const absensiRecord = {
-                        id: Date.now(),
-                        nama: mdFound.nama,
-                        branch: mdFound.branch,
-                        tanggal: new Date().toLocaleDateString('id-ID'),
-                        jam: new Date().toLocaleTimeString('id-ID'),
-                        timestamp: new Date().toISOString()
-                    };
-                    
-                    // Cek apakah sudah absen hari ini
-                    const today = new Date().toLocaleDateString('id-ID');
-                    const sudahAbsen = absensiData.some(absen => 
-                        absen.nama === mdFound.nama && 
-                        absen.branch === mdFound.branch && 
-                        absen.tanggal === today
-                    );
-                    
-                    if (!sudahAbsen) {
-                        absensiData.push(absensiRecord);
-                        localStorage.setItem('absensiData', JSON.stringify(absensiData));
-                        console.log('📝 Absensi tercatat:', absensiRecord);
-                    } else {
-                        console.log('ℹ️ MD sudah absen hari ini');
-                    }
-                    
-                    // MD ditemukan, tampilkan dashboard
+                    currentMD = mdFound;
                     welcomeText.textContent = `Selamat Datang, ${mdFound.nama}`;
                     branchText.textContent = `Branch: ${mdFound.branch}`;
                     
-                    // Simpan data MD yang sedang login
                     sessionStorage.setItem('currentMD', JSON.stringify(mdFound));
+                    
+                    // Start tracking waktu kerja
+                    startWorkDurationTracking();
+                    
+                    displayJobdesk();
                     
                     loginPage.classList.add('hidden');
                     dashboardPage.classList.remove('hidden');
-                    
-                    // Reset error message
                     errorMessage.classList.add('hidden');
                     
-                    // Mulai sinkronisasi jobdesk real-time
-                    startJobdeskSync();
-                    
-                    showSuccess('Verifikasi berhasil! Selamat bekerja.');
                 } else {
-                    console.log('❌ Verifikasi gagal! MD tidak ditemukan dalam database');
-                    // MD tidak ditemukan, tampilkan pesan error
                     showError('Data tidak ditemukan !! Silahkan urus surat tugas !!!');
                 }
+            } catch (error) {
+                console.error('❌ Error saat verifikasi:', error);
+                showError('Terjadi kesalahan. Silakan coba lagi!');
             } finally {
                 setLoadingState(false);
             }
         });
 
+        // Handle admin login button
+        adminLoginBtn.addEventListener('click', function() {
+            loginPage.classList.add('hidden');
+            adminLoginPage.classList.remove('hidden');
+        });
+
+        // Handle back to MD login
+        backToMDLoginBtn.addEventListener('click', function() {
+            adminLoginPage.classList.add('hidden');
+            loginPage.classList.remove('hidden');
+            adminLoginForm.reset();
+            adminErrorMessage.classList.add('hidden');
+        });
+
+        // Handle admin login form submission
+        adminLoginForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const username = document.getElementById('adminUsername').value.trim();
+            const password = document.getElementById('adminPasswordLogin').value.trim();
+            
+            if (username === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
+                adminLoginPage.classList.add('hidden');
+                adminDashboardPage.classList.remove('hidden');
+                adminErrorMessage.classList.add('hidden');
+                loadAdminData();
+            } else {
+                showAdminError('Username atau password admin salah!');
+                document.getElementById('adminPasswordLogin').value = '';
+            }
+        });
+
+        // Handle admin logout
+        adminLogoutBtn.addEventListener('click', function() {
+            adminDashboardPage.classList.add('hidden');
+            loginPage.classList.remove('hidden');
+            adminLoginForm.reset();
+            adminErrorMessage.classList.add('hidden');
+        });
+
         // Handle logout
         logoutBtn.addEventListener('click', function() {
-            // Catat jam keluar sebelum logout
-            const currentMD = JSON.parse(sessionStorage.getItem('currentMD') || '{}');
-            if (currentMD.nama && currentMD.branch) {
-                const today = new Date().toLocaleDateString('id-ID');
-                const jamKeluar = new Date().toLocaleTimeString('id-ID');
-                
-                // Cari data absensi hari ini untuk MD yang sedang login
-                const absenIndex = absensiData.findIndex(absen => 
-                    absen.nama === currentMD.nama && 
-                    absen.branch === currentMD.branch && 
-                    absen.tanggal === today
-                );
-                
-                if (absenIndex !== -1) {
-                    // Update jam keluar dan hitung durasi
-                    absensiData[absenIndex].jamKeluar = jamKeluar;
-                    
-                    // Hitung durasi kerja
-                    const jamMasuk = absensiData[absenIndex].jam;
-                    const durasi = hitungDurasi(jamMasuk, jamKeluar);
-                    absensiData[absenIndex].durasi = durasi;
-                    
-                    // Simpan ke localStorage
-                    localStorage.setItem('absensiData', JSON.stringify(absensiData));
-                    
-                    console.log(`📤 Jam keluar tercatat: ${jamKeluar}, Durasi: ${durasi}`);
-                }
-            }
-            
-            // Hentikan sinkronisasi jobdesk
-            stopJobdeskSync();
+            // Stop tracking waktu kerja
+            stopWorkDurationTracking();
             
             loginPage.classList.remove('hidden');
             dashboardPage.classList.add('hidden');
-            
-            // Clear session data
             sessionStorage.removeItem('currentMD');
-            
-            // Reset form
             absenForm.reset();
             errorMessage.classList.add('hidden');
+            currentMD = null;
         });
 
-        // Admin Panel Functions
-        const adminBtn = document.getElementById('adminBtn');
-        const adminModal = document.getElementById('adminModal');
-        const closeAdminModal = document.getElementById('closeAdminModal');
-        const adminPasswordSection = document.getElementById('adminPasswordSection');
-        const adminContent = document.getElementById('adminContent');
-        const verifyAdminBtn = document.getElementById('verifyAdminBtn');
-        const adminPassword = document.getElementById('adminPassword');
-        const updateJobdeskBtn = document.getElementById('updateJobdeskBtn');
-        const refreshAttendanceBtn = document.getElementById('refreshAttendanceBtn');
-        const clearAbsensiBtn = document.getElementById('clearAbsensiBtn');
-        const queryAbsensiBtn = document.getElementById('queryAbsensiBtn');
-        const showTodayBtn = document.getElementById('showTodayBtn');
-        const queryTanggal = document.getElementById('queryTanggal');
-        const queryResultInfo = document.getElementById('queryResultInfo');
-        const exportAbsensiBtn = document.getElementById('exportAbsensiBtn');
-        
-        // Tab elements
-        const tabJobdesk = document.getElementById('tabJobdesk');
-        const tabDokumentasi = document.getElementById('tabDokumentasi');
-        const tabAbsensi = document.getElementById('tabAbsensi');
-        const contentJobdesk = document.getElementById('contentJobdesk');
-        const contentDokumentasi = document.getElementById('contentDokumentasi');
-        const contentAbsensi = document.getElementById('contentAbsensi');
-        
-        // Dokumentasi elements
-        const refreshDokumentasiBtn = document.getElementById('refreshDokumentasiBtn');
-        const filterBranch = document.getElementById('filterBranch');
-        const filterTanggal = document.getElementById('filterTanggal');
-        const dokumentasiList = document.getElementById('dokumentasiList');
-        
-        // Edit modal elements
-        const editDokumentasiModal = document.getElementById('editDokumentasiModal');
-        const closeEditModal = document.getElementById('closeEditModal');
-        const editDokumentasiForm = document.getElementById('editDokumentasiForm');
-        const cancelEditBtn = document.getElementById('cancelEditBtn');
-
-        // Show admin modal
-        adminBtn.addEventListener('click', function() {
-            adminModal.classList.remove('hidden');
-            adminPasswordSection.classList.remove('hidden');
-            adminContent.classList.add('hidden');
-            adminPassword.value = '';
+        // Handle dokumentasi modal
+        closeDokumentasiModal.addEventListener('click', function() {
+            dokumentasiModal.classList.add('hidden');
         });
 
-        // Close admin modal
-        closeAdminModal.addEventListener('click', function() {
-            adminModal.classList.add('hidden');
+        cancelDokBtn.addEventListener('click', function() {
+            dokumentasiModal.classList.add('hidden');
         });
 
-        // Close modal when clicking outside
-        adminModal.addEventListener('click', function(e) {
-            if (e.target === adminModal) {
-                adminModal.classList.add('hidden');
+        dokumentasiModal.addEventListener('click', function(e) {
+            if (e.target === dokumentasiModal) {
+                dokumentasiModal.classList.add('hidden');
             }
         });
 
-        // Verify admin password
-        verifyAdminBtn.addEventListener('click', function() {
-            const password = adminPassword.value;
-            if (password === ADMIN_PASSWORD) {
-                adminPasswordSection.classList.add('hidden');
-                adminContent.classList.remove('hidden');
-                loadAttendanceData();
-                loadDokumentasiData();
-                populateBranchFilter();
-                loadJobdeskToAdminForm(); // Load jobdesk ke form admin
-                showSuccess('Login admin berhasil!');
-            } else {
-                showError('Password admin salah!');
-                adminPassword.value = '';
-            }
-        });
-        
-        // Fungsi untuk memuat jobdesk ke form admin
-        function loadJobdeskToAdminForm() {
-            const currentJobdesk = JSON.parse(localStorage.getItem('jobdeskData') || '[]');
-            
-            if (currentJobdesk.length >= 4) {
-                document.getElementById('jobdesk1Title').value = currentJobdesk[0].title || '';
-                document.getElementById('jobdesk1Desc').value = currentJobdesk[0].desc || '';
-                
-                document.getElementById('jobdesk2Title').value = currentJobdesk[1].title || '';
-                document.getElementById('jobdesk2Desc').value = currentJobdesk[1].desc || '';
-                
-                document.getElementById('jobdesk3Title').value = currentJobdesk[2].title || '';
-                document.getElementById('jobdesk3Desc').value = currentJobdesk[2].desc || '';
-                
-                document.getElementById('jobdesk4Title').value = currentJobdesk[3].title || '';
-                document.getElementById('jobdesk4Desc').value = currentJobdesk[3].desc || '';
-            }
-        }
-
-        // Tab switching
-        function switchTab(activeTab, activeContent) {
-            // Reset all tabs
-            [tabJobdesk, tabDokumentasi, tabAbsensi].forEach(tab => {
-                tab.classList.remove('bg-white', 'text-purple-600', 'shadow-sm');
-                tab.classList.add('text-gray-600');
-            });
-            
-            // Reset all content
-            [contentJobdesk, contentDokumentasi, contentAbsensi].forEach(content => {
-                content.classList.add('hidden');
-            });
-            
-            // Activate selected tab
-            activeTab.classList.add('bg-white', 'text-purple-600', 'shadow-sm');
-            activeTab.classList.remove('text-gray-600');
-            activeContent.classList.remove('hidden');
-        }
-
-        tabJobdesk.addEventListener('click', () => switchTab(tabJobdesk, contentJobdesk));
-        tabDokumentasi.addEventListener('click', () => {
-            switchTab(tabDokumentasi, contentDokumentasi);
-            loadDokumentasiData();
-        });
-        tabAbsensi.addEventListener('click', () => {
-            switchTab(tabAbsensi, contentAbsensi);
-            setDefaultDate(); // Set batas tanggal
-            loadAttendanceData();
-        });
-
-        // Handle Enter key in password field
-        adminPassword.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                verifyAdminBtn.click();
-            }
-        });
-
-        // Update jobdesk
-        updateJobdeskBtn.addEventListener('click', function() {
-            const jobdesks = [
-                {
-                    title: document.getElementById('jobdesk1Title').value,
-                    desc: document.getElementById('jobdesk1Desc').value,
-                    color: 'blue'
-                },
-                {
-                    title: document.getElementById('jobdesk2Title').value,
-                    desc: document.getElementById('jobdesk2Desc').value,
-                    color: 'green'
-                },
-                {
-                    title: document.getElementById('jobdesk3Title').value,
-                    desc: document.getElementById('jobdesk3Desc').value,
-                    color: 'yellow'
-                },
-                {
-                    title: document.getElementById('jobdesk4Title').value,
-                    desc: document.getElementById('jobdesk4Desc').value,
-                    color: 'purple'
-                }
-            ];
-
-            // Simpan ke localStorage untuk sinkronisasi
-            localStorage.setItem('jobdeskData', JSON.stringify(jobdesks));
-            jobdeskData = jobdesks; // Update data di memori
-            
-            // Update tampilan admin
-            updateJobdeskDisplay(jobdesks);
-            
-            showSuccess('Jobdesk berhasil diupdate! Semua user akan melihat perubahan secara otomatis.');
-        });
-
-        // Function to update jobdesk display
-        function updateJobdeskDisplay(jobdesks) {
-            const jobdeskContainer = document.querySelector('.space-y-4');
-            if (!jobdeskContainer) return; // Safety check
-            
-            // Simpan status checkbox yang sudah dicentang
-            const checkedTasks = {};
-            document.querySelectorAll('input[type="checkbox"]').forEach((checkbox, index) => {
-                checkedTasks[index] = checkbox.checked;
-            });
-            
-            jobdeskContainer.innerHTML = '';
-
-            jobdesks.forEach((jobdesk, index) => {
-                const jobdeskElement = document.createElement('div');
-                jobdeskElement.className = `border-l-4 border-${jobdesk.color}-500 pl-4 py-2`;
-                
-                // Restore checkbox status jika ada
-                const isChecked = checkedTasks[index] ? 'checked' : '';
-                const labelClass = checkedTasks[index] ? 'line-through text-gray-400' : '';
-                
-                jobdeskElement.innerHTML = `
-                    <h3 class="font-semibold text-gray-900">${jobdesk.title}</h3>
-                    <p class="text-gray-600 text-sm">${jobdesk.desc}</p>
-                    <div class="flex items-center mt-2">
-                        <input type="checkbox" id="task${index + 1}" class="mr-2 rounded" ${isChecked}>
-                        <label for="task${index + 1}" class="text-sm text-gray-700 ${labelClass}">Selesai</label>
-                    </div>
-                `;
-                jobdeskContainer.appendChild(jobdeskElement);
-            });
-
-            // Re-attach checkbox event listeners
-            document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
-                checkbox.addEventListener('change', function() {
-                    const label = this.nextElementSibling;
-                    if (this.checked) {
-                        label.classList.add('line-through', 'text-gray-400');
-                    } else {
-                        label.classList.remove('line-through', 'text-gray-400');
-                    }
-                });
-            });
-        }
-
-        // Load attendance data - DIPERBAIKI dengan Query
-        async function loadAttendanceData(targetDate = null) {
-            try {
-                const attendanceDiv = document.getElementById('attendanceData');
-                attendanceDiv.innerHTML = '<p class="text-gray-600">Loading data absensi...</p>';
-
-                // Tentukan tanggal yang akan ditampilkan
-                const displayDate = targetDate || new Date().toLocaleDateString('id-ID');
-                const filteredAbsensi = absensiData.filter(absen => absen.tanggal === displayDate);
-                
-                // Update info hasil query
-                updateQueryResultInfo(displayDate, filteredAbsensi.length);
-                
-                setTimeout(() => {
-                    if (filteredAbsensi.length === 0) {
-                        attendanceDiv.innerHTML = `
-                            <div class="text-center py-8">
-                                <svg class="w-12 h-12 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
-                                </svg>
-                                <p class="text-gray-500 font-medium">Tidak ada data absensi</p>
-                                <p class="text-gray-400 text-sm">Untuk tanggal ${displayDate}</p>
-                            </div>
-                        `;
-                        return;
-                    }
-
-                    // Sort by time (newest first)
-                    filteredAbsensi.sort((a, b) => b.jam.localeCompare(a.jam));
-                    
-                    let absensiHTML = `<div class="space-y-2 max-h-96 overflow-y-auto">`;
-                    
-                    filteredAbsensi.forEach((absen, index) => {
-                        const statusColor = index < 3 ? 'text-green-600' : index < 6 ? 'text-yellow-600' : 'text-red-600';
-                        const statusText = index < 3 ? 'Tepat Waktu' : index < 6 ? 'Terlambat' : 'Sangat Terlambat';
-                        
-                        // Status kehadiran (masih aktif atau sudah keluar)
-                        const isActive = !absen.jamKeluar;
-                        const activeStatus = isActive ? 
-                            '<span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">🟢 Aktif</span>' : 
-                            '<span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">⚫ Selesai</span>';
-                        
-                        absensiHTML += `
-                            <div class="bg-white p-4 rounded-lg border border-gray-200 hover:shadow-sm transition-shadow">
-                                <div class="flex justify-between items-start mb-3">
-                                    <div class="flex-1">
-                                        <div class="font-medium text-gray-900">${absen.nama}</div>
-                                        <div class="text-sm text-gray-600">${absen.branch}</div>
-                                    </div>
-                                    <div class="text-right">
-                                        <span class="text-xs font-medium ${statusColor}">${statusText}</span>
-                                        <div class="text-xs text-gray-400 mt-1">#${absen.id}</div>
-                                    </div>
-                                </div>
-                                
-                                <div class="grid grid-cols-2 gap-4 text-xs">
-                                    <div>
-                                        <span class="font-medium text-gray-700">Masuk:</span>
-                                        <div class="text-gray-600">${absen.jam}</div>
-                                    </div>
-                                    <div>
-                                        <span class="font-medium text-gray-700">Keluar:</span>
-                                        <div class="text-gray-600">${absen.jamKeluar || '-'}</div>
-                                    </div>
-                                </div>
-                                
-                                <div class="flex justify-between items-center mt-3 pt-3 border-t border-gray-100">
-                                    <div class="text-xs">
-                                        <span class="font-medium text-gray-700">Durasi:</span>
-                                        <span class="text-gray-600">${absen.durasi || 'Belum selesai'}</span>
-                                    </div>
-                                    ${activeStatus}
-                                </div>
-                            </div>
-                        `;
-                    });
-                    
-                    absensiHTML += '</div>';
-                    attendanceDiv.innerHTML = absensiHTML;
-                }, 500);
-            } catch (error) {
-                console.error('Error loading attendance data:', error);
-                document.getElementById('attendanceData').innerHTML = '<p class="text-red-600">Gagal memuat data absensi</p>';
-            }
-        }
-
-        // Fungsi untuk update info hasil query
-        function updateQueryResultInfo(tanggal, jumlahHadir) {
-            const isToday = tanggal === new Date().toLocaleDateString('id-ID');
-            const dayLabel = isToday ? 'Hari Ini' : formatTanggalReadable(tanggal);
-            
-            queryResultInfo.innerHTML = `
-                <div class="flex items-center space-x-4">
-                    <span class="font-medium text-gray-700">${dayLabel}</span>
-                    <span class="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-xs font-medium">
-                        ${jumlahHadir} MD Hadir
-                    </span>
-                    ${!isToday ? '<span class="text-xs text-gray-500">(Data Historis)</span>' : ''}
-                </div>
-            `;
-        }
-
-        // Fungsi untuk format tanggal yang mudah dibaca
-        function formatTanggalReadable(tanggalString) {
-            try {
-                const [day, month, year] = tanggalString.split('/');
-                const date = new Date(year, month - 1, day);
-                const options = { 
-                    weekday: 'long', 
-                    year: 'numeric', 
-                    month: 'long', 
-                    day: 'numeric' 
+        // Handle file preview
+        document.getElementById('fotoBefore').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('imgBefore').src = e.target.result;
+                    document.getElementById('previewBefore').classList.remove('hidden');
                 };
-                return date.toLocaleDateString('id-ID', options);
-            } catch (error) {
-                return tanggalString;
-            }
-        }
-
-        // Fungsi untuk export data absensi
-        function exportAbsensiData(tanggal) {
-            const filteredData = absensiData.filter(absen => absen.tanggal === tanggal);
-            
-            if (filteredData.length === 0) {
-                showError('Tidak ada data untuk diekspor pada tanggal tersebut!');
-                return;
-            }
-
-            // Buat CSV content
-            let csvContent = "Nama,Branch,Tanggal,Jam Masuk,Jam Keluar,Durasi\n";
-            
-            filteredData.forEach(absen => {
-                csvContent += `"${absen.nama}","${absen.branch}","${absen.tanggal}","${absen.jam}","${absen.jamKeluar || '-'}","${absen.durasi || 'Belum selesai'}"\n`;
-            });
-
-            // Download file
-            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-            const link = document.createElement('a');
-            const url = URL.createObjectURL(blob);
-            link.setAttribute('href', url);
-            link.setAttribute('download', `absensi_${tanggal.replace(/\//g, '-')}.csv`);
-            link.style.visibility = 'hidden';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            
-            showSuccess(`Data absensi ${tanggal} berhasil diekspor!`);
-        }
-
-        // Query absensi berdasarkan tanggal
-        queryAbsensiBtn.addEventListener('click', function() {
-            const selectedDate = queryTanggal.value;
-            
-            if (!selectedDate) {
-                showError('Silakan pilih tanggal terlebih dahulu!');
-                return;
-            }
-            
-            // Convert dari format YYYY-MM-DD ke DD/MM/YYYY
-            const [year, month, day] = selectedDate.split('-');
-            const formattedDate = `${day}/${month}/${year}`;
-            
-            loadAttendanceData(formattedDate);
-        });
-
-        // Tampilkan data hari ini
-        showTodayBtn.addEventListener('click', function() {
-            queryTanggal.value = ''; // Reset date picker
-            loadAttendanceData(); // Load today's data
-        });
-
-        // Export data absensi
-        exportAbsensiBtn.addEventListener('click', function() {
-            const currentDisplayDate = queryResultInfo.textContent.includes('Hari Ini') ? 
-                new Date().toLocaleDateString('id-ID') : 
-                getCurrentDisplayDate();
-            
-            exportAbsensiData(currentDisplayDate);
-        });
-
-        // Fungsi helper untuk mendapatkan tanggal yang sedang ditampilkan
-        function getCurrentDisplayDate() {
-            const selectedDate = queryTanggal.value;
-            if (selectedDate) {
-                const [year, month, day] = selectedDate.split('-');
-                return `${day}/${month}/${year}`;
-            }
-            return new Date().toLocaleDateString('id-ID');
-        }
-
-        // Set tanggal hari ini sebagai default di date picker
-        function setDefaultDate() {
-            const today = new Date();
-            const year = today.getFullYear();
-            const month = String(today.getMonth() + 1).padStart(2, '0');
-            const day = String(today.getDate()).padStart(2, '0');
-            queryTanggal.max = `${year}-${month}-${day}`; // Tidak bisa pilih tanggal masa depan
-        }
-
-        // Refresh attendance data
-        refreshAttendanceBtn.addEventListener('click', function() {
-            const currentDate = getCurrentDisplayDate();
-            loadAttendanceData(currentDate);
-        });
-
-        // Clear absensi data
-        clearAbsensiBtn.addEventListener('click', function() {
-            if (confirm('Apakah Anda yakin ingin menghapus semua data absensi? Tindakan ini tidak dapat dibatalkan.')) {
-                absensiData = [];
-                localStorage.setItem('absensiData', JSON.stringify(absensiData));
-                loadAttendanceData();
-                showSuccess('Data absensi berhasil dihapus!');
+                reader.readAsDataURL(file);
             }
         });
 
-        // Dokumentasi management functions
-        function populateBranchFilter() {
-            const branches = [...new Set(registeredMDs.map(md => md.branch))];
-            filterBranch.innerHTML = '<option value="">Semua Branch</option>';
-            branches.forEach(branch => {
-                const option = document.createElement('option');
-                option.value = branch;
-                option.textContent = branch;
-                filterBranch.appendChild(option);
-            });
-        }
-
-        function loadDokumentasiData() {
-            const filterBranchValue = filterBranch.value;
-            const filterTanggalValue = filterTanggal.value;
-            
-            let filteredData = [...dokumentasiData];
-            
-            // Filter by branch
-            if (filterBranchValue) {
-                filteredData = filteredData.filter(dok => dok.branch === filterBranchValue);
-            }
-            
-            // Filter by date
-            if (filterTanggalValue) {
-                const filterDate = new Date(filterTanggalValue).toLocaleDateString('id-ID');
-                filteredData = filteredData.filter(dok => dok.tanggal === filterDate);
-            }
-            
-            // Sort by newest first
-            filteredData.sort((a, b) => b.id - a.id);
-            
-            if (filteredData.length === 0) {
-                dokumentasiList.innerHTML = '<p class="text-gray-600">Tidak ada dokumentasi ditemukan.</p>';
-                return;
-            }
-            
-            dokumentasiList.innerHTML = '';
-            filteredData.forEach(dok => {
-                const dokElement = document.createElement('div');
-                dokElement.className = 'bg-white p-4 rounded-lg border border-gray-200 hover:shadow-md transition-shadow';
-                dokElement.innerHTML = `
-                    <div class="flex justify-between items-start mb-3">
-                        <div>
-                            <h4 class="font-semibold text-gray-900">${dok.nama}</h4>
-                            <p class="text-sm text-gray-600">${dok.branch} • ${dok.tanggal} ${dok.jam}</p>
-                        </div>
-                        <div class="flex space-x-2">
-                            <button onclick="editDokumentasi(${dok.id})" class="text-blue-600 hover:text-blue-800 text-sm font-medium">
-                                Edit
-                            </button>
-                            <button onclick="deleteDokumentasi(${dok.id})" class="text-red-600 hover:text-red-800 text-sm font-medium">
-                                Hapus
-                            </button>
-                        </div>
-                    </div>
-                    <div class="space-y-2">
-                        <div>
-                            <span class="text-sm font-medium text-gray-700">Lokasi:</span>
-                            <span class="text-sm text-gray-600">${dok.lokasi}</span>
-                        </div>
-                        <div>
-                            <span class="text-sm font-medium text-gray-700">Catatan:</span>
-                            <p class="text-sm text-gray-600 mt-1">${dok.catatan}</p>
-                        </div>
-                        ${dok.fotoData ? `
-                            <div>
-                                <span class="text-sm font-medium text-gray-700">Foto:</span>
-                                <img src="${dok.fotoData}" alt="Foto Kunjungan" class="mt-1 w-32 h-24 object-cover rounded border cursor-pointer" onclick="showImageModal('${dok.fotoData}')">
-                            </div>
-                        ` : ''}
-                    </div>
-                `;
-                dokumentasiList.appendChild(dokElement);
-            });
-        }
-
-        function editDokumentasi(id) {
-            const dok = dokumentasiData.find(d => d.id === id);
-            if (!dok) return;
-            
-            document.getElementById('editDokId').value = dok.id;
-            document.getElementById('editNama').value = dok.nama;
-            document.getElementById('editBranch').value = dok.branch;
-            document.getElementById('editTanggalJam').value = `${dok.tanggal} ${dok.jam}`;
-            document.getElementById('editCatatan').value = dok.catatan;
-            document.getElementById('editLokasi').value = dok.lokasi;
-            
-            const fotoContainer = document.getElementById('editFotoContainer');
-            const fotoPreview = document.getElementById('editFotoPreview');
-            
-            if (dok.fotoData) {
-                fotoPreview.src = dok.fotoData;
-                fotoContainer.classList.remove('hidden');
-            } else {
-                fotoContainer.classList.add('hidden');
-            }
-            
-            editDokumentasiModal.classList.remove('hidden');
-        }
-
-        function deleteDokumentasi(id) {
-            if (confirm('Apakah Anda yakin ingin menghapus dokumentasi ini?')) {
-                dokumentasiData = dokumentasiData.filter(d => d.id !== id);
-                localStorage.setItem('dokumentasiData', JSON.stringify(dokumentasiData));
-                loadDokumentasiData();
-                showSuccess('Dokumentasi berhasil dihapus!');
-            }
-        }
-
-        function showImageModal(imageSrc) {
-            const modal = document.createElement('div');
-            modal.className = 'fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center p-4 z-50';
-            modal.innerHTML = `
-                <div class="relative max-w-4xl max-h-full">
-                    <img src="${imageSrc}" alt="Foto Kunjungan" class="max-w-full max-h-full rounded-lg">
-                    <button onclick="this.parentElement.parentElement.remove()" class="absolute top-4 right-4 text-white bg-black bg-opacity-50 rounded-full p-2 hover:bg-opacity-75">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                        </svg>
-                    </button>
-                </div>
-            `;
-            document.body.appendChild(modal);
-            
-            modal.addEventListener('click', function(e) {
-                if (e.target === modal) {
-                    modal.remove();
-                }
-            });
-        }
-
-        // Event listeners for dokumentasi
-        refreshDokumentasiBtn.addEventListener('click', loadDokumentasiData);
-        filterBranch.addEventListener('change', loadDokumentasiData);
-        filterTanggal.addEventListener('change', loadDokumentasiData);
-
-        // Edit modal event listeners
-        closeEditModal.addEventListener('click', () => {
-            editDokumentasiModal.classList.add('hidden');
-        });
-
-        cancelEditBtn.addEventListener('click', () => {
-            editDokumentasiModal.classList.add('hidden');
-        });
-
-        editDokumentasiModal.addEventListener('click', function(e) {
-            if (e.target === editDokumentasiModal) {
-                editDokumentasiModal.classList.add('hidden');
+        document.getElementById('fotoAfter').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('imgAfter').src = e.target.result;
+                    document.getElementById('previewAfter').classList.remove('hidden');
+                };
+                reader.readAsDataURL(file);
             }
         });
 
-        editDokumentasiForm.addEventListener('submit', function(e) {
+        // Handle dokumentasi form submission - ENHANCED VERSION WITH FALLBACK
+        dokumentasiForm.addEventListener('submit', async function(e) {
             e.preventDefault();
             
-            const id = parseInt(document.getElementById('editDokId').value);
-            const catatan = document.getElementById('editCatatan').value.trim();
-            const lokasi = document.getElementById('editLokasi').value.trim();
+            console.log('🔄 Form dokumentasi disubmit...');
             
-            if (!catatan || !lokasi) {
+            const jobdeskId = parseInt(document.getElementById('jobdeskId').value);
+            const jobdeskTitle = document.getElementById('jobdeskTitle').value;
+            const komentar = document.getElementById('komentar').value.trim();
+            const lokasi = document.getElementById('lokasi').value.trim();
+            const fotoBefore = document.getElementById('fotoBefore').files[0];
+            const fotoAfter = document.getElementById('fotoAfter').files[0];
+            
+            console.log('📝 Data form:', {
+                jobdeskId,
+                jobdeskTitle,
+                komentar,
+                lokasi,
+                fotoBefore: fotoBefore ? fotoBefore.name : 'Tidak ada',
+                fotoAfter: fotoAfter ? fotoAfter.name : 'Tidak ada'
+            });
+            
+            if (!komentar || !lokasi) {
                 showError('Harap isi semua field yang diperlukan!');
                 return;
             }
             
-            const dokIndex = dokumentasiData.findIndex(d => d.id === id);
-            if (dokIndex !== -1) {
-                dokumentasiData[dokIndex].catatan = catatan;
-                dokumentasiData[dokIndex].lokasi = lokasi;
-                localStorage.setItem('dokumentasiData', JSON.stringify(dokumentasiData));
-                
-                editDokumentasiModal.classList.add('hidden');
-                loadDokumentasiData();
-                showSuccess('Dokumentasi berhasil diupdate!');
-            }
-        });
-
-        // Fungsi untuk menghitung durasi kerja
-        function hitungDurasi(jamMasuk, jamKeluar) {
+            setDokumentasiLoadingState(true);
+            
             try {
-                // Parse jam masuk dan keluar
-                const [jamM, menitM, detikM] = jamMasuk.split(':').map(Number);
-                const [jamK, menitK, detikK] = jamKeluar.split(':').map(Number);
+                // Convert images to base64
+                let fotoBeforeData = null;
+                let fotoAfterData = null;
                 
-                // Convert ke menit total
-                const totalMenitMasuk = jamM * 60 + menitM;
-                const totalMenitKeluar = jamK * 60 + menitK;
-                
-                // Hitung selisih (handle jika keluar di hari berikutnya)
-                let selisihMenit = totalMenitKeluar - totalMenitMasuk;
-                if (selisihMenit < 0) {
-                    selisihMenit += 24 * 60; // Tambah 24 jam jika negatif
+                if (fotoBefore) {
+                    console.log('🖼️ Converting foto before to base64...');
+                    fotoBeforeData = await fileToBase64(fotoBefore);
+                    console.log('✅ Foto before converted, size:', fotoBeforeData.length, 'characters');
                 }
                 
-                // Convert kembali ke jam dan menit
-                const jam = Math.floor(selisihMenit / 60);
-                const menit = selisihMenit % 60;
+                if (fotoAfter) {
+                    console.log('🖼️ Converting foto after to base64...');
+                    fotoAfterData = await fileToBase64(fotoAfter);
+                    console.log('✅ Foto after converted, size:', fotoAfterData.length, 'characters');
+                }
                 
-                return `${jam} jam ${menit} menit`;
-            } catch (error) {
-                console.error('Error menghitung durasi:', error);
-                return 'Error';
-            }
-        }
-
-        // Make functions global for onclick handlers
-        window.editDokumentasi = editDokumentasi;
-        window.deleteDokumentasi = deleteDokumentasi;
-        window.showImageModal = showImageModal;
-
-        // Handle dokumentasi submission
-        simpanDokumentasi.addEventListener('click', function() {
-            const catatan = document.getElementById('catatanKunjungan').value.trim();
-            const lokasi = document.getElementById('lokasiKunjungan').value.trim();
-            const foto = document.getElementById('fotoKunjungan').files[0];
-            
-            if (catatan && lokasi) {
-                // Ambil data MD yang sedang login
-                const currentMD = JSON.parse(sessionStorage.getItem('currentMD') || '{}');
-                
-                // Buat objek dokumentasi
-                const dokumentasi = {
-                    id: Date.now(),
-                    nama: currentMD.nama || 'Unknown',
-                    branch: currentMD.branch || 'Unknown',
+                const dokumentasiData = {
+                    nama: currentMD.nama,
+                    branch: currentMD.branch,
                     tanggal: new Date().toLocaleDateString('id-ID'),
                     jam: new Date().toLocaleTimeString('id-ID'),
-                    catatan: catatan,
+                    jobdeskId: jobdeskId,
+                    jobdeskTitle: jobdeskTitle,
+                    komentar: komentar,
                     lokasi: lokasi,
-                    foto: foto ? foto.name : null,
-                    fotoData: null
+                    fotoBefore: fotoBeforeData,
+                    fotoAfter: fotoAfterData,
+                    timestamp: new Date().toISOString(),
+                    id: Date.now() // Unique ID for local storage
                 };
                 
-                // Jika ada foto, convert ke base64
-                if (foto) {
-                    const reader = new FileReader();
-                    reader.onload = function(e) {
-                        dokumentasi.fotoData = e.target.result;
-                        // Simpan dokumentasi
-                        dokumentasiData.push(dokumentasi);
-                        localStorage.setItem('dokumentasiData', JSON.stringify(dokumentasiData));
-                        
-                        statusDokumentasi.classList.remove('hidden');
-                        
-                        // Reset form dokumentasi
-                        document.getElementById('catatanKunjungan').value = '';
-                        document.getElementById('lokasiKunjungan').value = '';
-                        document.getElementById('fotoKunjungan').value = '';
-                        
-                        // Hide status after 3 seconds
-                        setTimeout(() => {
-                            statusDokumentasi.classList.add('hidden');
-                        }, 3000);
-                    };
-                    reader.readAsDataURL(foto);
-                } else {
-                    // Simpan dokumentasi tanpa foto
-                    dokumentasiData.push(dokumentasi);
-                    localStorage.setItem('dokumentasiData', JSON.stringify(dokumentasiData));
+                console.log('📤 Mengirim dokumentasi ke Apps Script...');
+                
+                let saveSuccess = false;
+                let errorMessage = '';
+                
+                try {
+                    // Try to save to Google Sheets
+                    await saveDokumentasiToSheets(dokumentasiData);
+                    saveSuccess = true;
+                    console.log('✅ Dokumentasi berhasil disimpan ke Google Sheets!');
+                } catch (error) {
+                    console.error('❌ Gagal menyimpan ke Google Sheets:', error.message);
+                    errorMessage = error.message;
                     
-                    statusDokumentasi.classList.remove('hidden');
-                    
-                    // Reset form dokumentasi
-                    document.getElementById('catatanKunjungan').value = '';
-                    document.getElementById('lokasiKunjungan').value = '';
-                    document.getElementById('fotoKunjungan').value = '';
-                    
-                    // Hide status after 3 seconds
-                    setTimeout(() => {
-                        statusDokumentasi.classList.add('hidden');
-                    }, 3000);
+                    // Save to local storage as fallback
+                    console.log('💾 Menyimpan ke local storage sebagai backup...');
+                    const localDocs = JSON.parse(localStorage.getItem('pendingDokumentasi') || '[]');
+                    localDocs.push({
+                        ...dokumentasiData,
+                        status: 'pending',
+                        savedAt: new Date().toISOString()
+                    });
+                    localStorage.setItem('pendingDokumentasi', JSON.stringify(localDocs));
+                    console.log('✅ Dokumentasi disimpan ke local storage');
                 }
-            } else {
-                showError('Harap isi catatan dan lokasi kunjungan!');
+                
+                // Mark jobdesk as completed regardless of save method
+                const today = new Date().toLocaleDateString('id-ID');
+                const mdKey = `${currentMD.nama}_${currentMD.branch}_${today}`;
+                
+                if (!completedJobdesk[mdKey]) {
+                    completedJobdesk[mdKey] = {};
+                }
+                
+                completedJobdesk[mdKey][jobdeskId] = true;
+                localStorage.setItem('completedJobdesk', JSON.stringify(completedJobdesk));
+                
+                // Auto-check the checkbox
+                const checkbox = document.getElementById(`task${jobdeskId}`);
+                if (checkbox) {
+                    checkbox.checked = true;
+                }
+                
+                // Close modal and refresh display
+                dokumentasiModal.classList.add('hidden');
+                displayJobdesk();
+                
+                if (saveSuccess) {
+                    showSuccess('✅ Dokumentasi berhasil disimpan ke server! Jobdesk telah selesai.');
+                } else {
+                    showSuccess('💾 Dokumentasi disimpan secara lokal. Akan dikirim ke server saat koneksi membaik.');
+                    console.log('⚠️ Dokumentasi tersimpan lokal karena:', errorMessage);
+                }
+                
+            } catch (error) {
+                console.error('❌ Error processing dokumentasi:', error);
+                showError('Gagal memproses dokumentasi: ' + error.message);
+            } finally {
+                setDokumentasiLoadingState(false);
             }
         });
 
-        // Handle task checkboxes
-        document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
-            checkbox.addEventListener('change', function() {
-                const label = this.nextElementSibling;
-                if (this.checked) {
-                    label.classList.add('line-through', 'text-gray-400');
-                } else {
-                    label.classList.remove('line-through', 'text-gray-400');
-                }
+        // Helper function to convert file to base64
+        function fileToBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = error => reject(error);
             });
+        }
+
+        // Admin functions
+        function loadAdminData() {
+            // Load admin data here
+            document.getElementById('adminDataList').innerHTML = '<p class="text-gray-600">Loading data dokumentasi...</p>';
+            
+            // Simulate loading
+            setTimeout(() => {
+                document.getElementById('adminDataList').innerHTML = '<p class="text-gray-600">Belum ada data dokumentasi.</p>';
+            }, 1000);
+            
+            // Load rekap login data
+            loadRekapLoginData();
+        }
+        
+        // Fungsi untuk load rekap login MD
+        function loadRekapLoginData() {
+            const rekapList = document.getElementById('rekapLoginList');
+            const filterBranch = document.getElementById('filterBranchLogin').value;
+            const filterTanggal = document.getElementById('filterTanggalLogin').value;
+            
+            // Get all login sessions
+            const sessions = Object.values(loginSessions);
+            
+            // Filter data
+            let filteredSessions = sessions.filter(session => {
+                let matchBranch = !filterBranch || session.branch === filterBranch;
+                let matchTanggal = !filterTanggal || session.tanggal === new Date(filterTanggal).toLocaleDateString('id-ID');
+                return matchBranch && matchTanggal;
+            });
+            
+            // Sort by date (newest first)
+            filteredSessions.sort((a, b) => new Date(b.loginTime) - new Date(a.loginTime));
+            
+            // Populate branch filter
+            const branches = [...new Set(sessions.map(s => s.branch))];
+            const branchSelect = document.getElementById('filterBranchLogin');
+            branchSelect.innerHTML = '<option value="">Semua Branch</option>';
+            branches.forEach(branch => {
+                branchSelect.innerHTML += `<option value="${branch}">${branch}</option>`;
+            });
+            
+            if (filteredSessions.length === 0) {
+                rekapList.innerHTML = '<p class="text-gray-600">Belum ada data login MD.</p>';
+                return;
+            }
+            
+            let html = '';
+            filteredSessions.forEach(session => {
+                const loginTime = new Date(session.loginTime);
+                const logoutTime = session.logoutTime ? new Date(session.logoutTime) : null;
+                const duration = session.totalDuration || (logoutTime ? logoutTime - loginTime : new Date() - loginTime);
+                const durationText = formatDuration(duration);
+                const status = logoutTime ? 'Selesai' : 'Sedang Login';
+                const statusColor = logoutTime ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800';
+                
+                html += `
+                    <div class="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                        <div class="flex justify-between items-start mb-2">
+                            <div>
+                                <h3 class="font-semibold text-gray-900">${session.nama}</h3>
+                                <p class="text-sm text-gray-600">${session.branch}</p>
+                            </div>
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statusColor}">
+                                ${status}
+                            </span>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4 text-sm">
+                            <div>
+                                <p class="text-gray-500">Tanggal</p>
+                                <p class="font-medium">${session.tanggal}</p>
+                            </div>
+                            <div>
+                                <p class="text-gray-500">Durasi Kerja</p>
+                                <p class="font-medium text-blue-600">${durationText}</p>
+                            </div>
+                            <div>
+                                <p class="text-gray-500">Login</p>
+                                <p class="font-medium">${loginTime.toLocaleTimeString('id-ID')}</p>
+                            </div>
+                            <div>
+                                <p class="text-gray-500">Logout</p>
+                                <p class="font-medium">${logoutTime ? logoutTime.toLocaleTimeString('id-ID') : '-'}</p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            rekapList.innerHTML = html;
+        }
+
+        // Handle admin tabs
+        document.getElementById('tabDokumentasi').addEventListener('click', function() {
+            // Switch to dokumentasi tab
+            document.getElementById('tabDokumentasi').classList.add('active', 'border-purple-500', 'text-purple-600');
+            document.getElementById('tabDokumentasi').classList.remove('border-transparent', 'text-gray-500');
+            
+            document.getElementById('tabRekapLogin').classList.remove('active', 'border-purple-500', 'text-purple-600');
+            document.getElementById('tabRekapLogin').classList.add('border-transparent', 'text-gray-500');
+            
+            document.getElementById('contentDokumentasi').classList.remove('hidden');
+            document.getElementById('contentRekapLogin').classList.add('hidden');
         });
+        
+        document.getElementById('tabRekapLogin').addEventListener('click', function() {
+            // Switch to rekap login tab
+            document.getElementById('tabRekapLogin').classList.add('active', 'border-purple-500', 'text-purple-600');
+            document.getElementById('tabRekapLogin').classList.remove('border-transparent', 'text-gray-500');
+            
+            document.getElementById('tabDokumentasi').classList.remove('active', 'border-purple-500', 'text-purple-600');
+            document.getElementById('tabDokumentasi').classList.add('border-transparent', 'text-gray-500');
+            
+            document.getElementById('contentRekapLogin').classList.remove('hidden');
+            document.getElementById('contentDokumentasi').classList.add('hidden');
+            
+            // Load rekap data when tab is opened
+            loadRekapLoginData();
+        });
+        
+        // Handle filter changes for rekap login
+        document.getElementById('filterBranchLogin').addEventListener('change', loadRekapLoginData);
+        document.getElementById('filterTanggalLogin').addEventListener('change', loadRekapLoginData);
+        document.getElementById('refreshRekapBtn').addEventListener('click', loadRekapLoginData);
+
+        // Export functions
+        function exportToExcel(data, filename) {
+            // Create Excel-compatible CSV with UTF-8 BOM
+            const BOM = '\uFEFF';
+            const headers = ['No', 'Nama MD', 'Branch', 'Tanggal', 'Jam Login', 'Jam Logout', 'Durasi Kerja', 'Status'];
+            
+            let csvContent = BOM + headers.join(',') + '\n';
+            
+            data.forEach((session, index) => {
+                const loginTime = new Date(session.loginTime);
+                const logoutTime = session.logoutTime ? new Date(session.logoutTime) : null;
+                const duration = session.totalDuration || (logoutTime ? logoutTime - loginTime : new Date() - loginTime);
+                const durationText = formatDuration(duration);
+                const status = logoutTime ? 'Selesai' : 'Sedang Login';
+                
+                const row = [
+                    index + 1,
+                    `"${session.nama}"`,
+                    `"${session.branch}"`,
+                    `"${session.tanggal}"`,
+                    `"${loginTime.toLocaleTimeString('id-ID')}"`,
+                    `"${logoutTime ? logoutTime.toLocaleTimeString('id-ID') : '-'}"`,
+                    `"${durationText}"`,
+                    `"${status}"`
+                ];
+                
+                csvContent += row.join(',') + '\n';
+            });
+            
+            // Create and download file
+            const blob = new Blob([csvContent], { type: 'application/vnd.ms-excel;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            link.setAttribute('href', url);
+            link.setAttribute('download', filename);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+        
+        function exportToCSV(data, filename) {
+            const headers = ['No', 'Nama MD', 'Branch', 'Tanggal', 'Jam Login', 'Jam Logout', 'Durasi Kerja', 'Status'];
+            
+            let csvContent = headers.join(',') + '\n';
+            
+            data.forEach((session, index) => {
+                const loginTime = new Date(session.loginTime);
+                const logoutTime = session.logoutTime ? new Date(session.logoutTime) : null;
+                const duration = session.totalDuration || (logoutTime ? logoutTime - loginTime : new Date() - loginTime);
+                const durationText = formatDuration(duration);
+                const status = logoutTime ? 'Selesai' : 'Sedang Login';
+                
+                const row = [
+                    index + 1,
+                    `"${session.nama}"`,
+                    `"${session.branch}"`,
+                    `"${session.tanggal}"`,
+                    `"${loginTime.toLocaleTimeString('id-ID')}"`,
+                    `"${logoutTime ? logoutTime.toLocaleTimeString('id-ID') : '-'}"`,
+                    `"${durationText}"`,
+                    `"${status}"`
+                ];
+                
+                csvContent += row.join(',') + '\n';
+            });
+            
+            // Create and download file
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            link.setAttribute('href', url);
+            link.setAttribute('download', filename);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+        
+        function getFilteredSessionsForExport() {
+            const filterBranch = document.getElementById('filterBranchLogin').value;
+            const filterTanggal = document.getElementById('filterTanggalLogin').value;
+            
+            // Get all login sessions
+            const sessions = Object.values(loginSessions);
+            
+            // Filter data
+            let filteredSessions = sessions.filter(session => {
+                let matchBranch = !filterBranch || session.branch === filterBranch;
+                let matchTanggal = !filterTanggal || session.tanggal === new Date(filterTanggal).toLocaleDateString('id-ID');
+                return matchBranch && matchTanggal;
+            });
+            
+            // Sort by date (newest first)
+            filteredSessions.sort((a, b) => new Date(b.loginTime) - new Date(a.loginTime));
+            
+            return filteredSessions;
+        }
+        
+        // Handle export buttons
+        document.getElementById('exportExcelBtn').addEventListener('click', function() {
+            const data = getFilteredSessionsForExport();
+            
+            if (data.length === 0) {
+                showError('Tidak ada data untuk diekspor!');
+                return;
+            }
+            
+            const today = new Date().toLocaleDateString('id-ID').replace(/\//g, '-');
+            const filterBranch = document.getElementById('filterBranchLogin').value;
+            const filterTanggal = document.getElementById('filterTanggalLogin').value;
+            
+            let filename = `Rekap_Absensi_MD_${today}`;
+            if (filterBranch) filename += `_${filterBranch.replace(/\s+/g, '_')}`;
+            if (filterTanggal) filename += `_${filterTanggal}`;
+            filename += '.xlsx';
+            
+            exportToExcel(data, filename);
+            showSuccess(`✅ Data berhasil diekspor ke ${filename}`);
+        });
+        
+        document.getElementById('exportCSVBtn').addEventListener('click', function() {
+            const data = getFilteredSessionsForExport();
+            
+            if (data.length === 0) {
+                showError('Tidak ada data untuk diekspor!');
+                return;
+            }
+            
+            const today = new Date().toLocaleDateString('id-ID').replace(/\//g, '-');
+            const filterBranch = document.getElementById('filterBranchLogin').value;
+            const filterTanggal = document.getElementById('filterTanggalLogin').value;
+            
+            let filename = `Rekap_Absensi_MD_${today}`;
+            if (filterBranch) filename += `_${filterBranch.replace(/\s+/g, '_')}`;
+            if (filterTanggal) filename += `_${filterTanggal}`;
+            filename += '.csv';
+            
+            exportToCSV(data, filename);
+            showSuccess(`✅ Data berhasil diekspor ke ${filename}`);
+        });
+
+        // Make functions global for onclick handlers
+        window.toggleJobdesk = toggleJobdesk;
+        window.openDokumentasiModal = openDokumentasiModal;
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'994022a604c940a3',t:'MTc2MTM3ODc1NS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9941eb4b917d89a1',t:'MTc2MTM5NzQ2MC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
