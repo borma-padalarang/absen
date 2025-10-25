@@ -846,7 +846,7 @@
             dokumentasiModal.classList.remove('hidden');
         }
 
-        // Fungsi untuk menyimpan absensi ke Google Sheets - CORS FIXED VERSION
+        // Fungsi untuk menyimpan absensi ke Google Sheets - GITHUB PAGES COMPATIBLE
         async function saveAttendanceToSheets(type) {
             try {
                 console.log(`🔄 Menyimpan absensi ${type} ke Google Sheets...`);
@@ -865,77 +865,83 @@
                 
                 console.log('📤 Data absensi yang akan dikirim:', attendanceData);
                 
-                // Try multiple methods to avoid CORS issues
-                let saveSuccess = false;
-                let lastError = null;
+                // GitHub Pages Compatible Method: Use GET with URL parameters
+                const params = new URLSearchParams({
+                    action: 'saveAbsensi',
+                    nama: attendanceData.nama,
+                    branch: attendanceData.branch,
+                    tanggal: attendanceData.tanggal,
+                    jam: attendanceData.jam,
+                    type: attendanceData.type,
+                    timestamp: attendanceData.timestamp,
+                    durasi: attendanceData.durasi,
+                    _t: Date.now() // Cache buster
+                });
                 
-                // Method 1: Try direct POST (might work if CORS is properly configured)
+                const getUrl = `${APPS_SCRIPT_URL}?${params.toString()}`;
+                console.log('🔄 Sending via GET method for GitHub Pages compatibility');
+                
+                // Use fetch with proper error handling
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+                
                 try {
-                    const response = await fetch(APPS_SCRIPT_URL, {
-                        method: 'POST',
-                        mode: 'no-cors', // Changed to no-cors to avoid preflight
+                    const response = await fetch(getUrl, {
+                        method: 'GET',
+                        mode: 'cors', // Try CORS first for GitHub Pages
                         cache: 'no-cache',
+                        credentials: 'omit',
+                        signal: controller.signal,
                         headers: {
-                            'Content-Type': 'text/plain', // Changed to avoid preflight
-                        },
-                        body: JSON.stringify({
-                            action: 'saveAbsensi',
-                            data: attendanceData
-                        })
+                            'Accept': 'application/json, text/plain, */*'
+                        }
                     });
                     
-                    // With no-cors, we can't read the response, so assume success
-                    console.log('📤 Data sent with no-cors mode');
-                    saveSuccess = true;
+                    clearTimeout(timeoutId);
                     
-                } catch (error) {
-                    console.log('❌ Method 1 failed:', error.message);
-                    lastError = error;
+                    if (response.ok) {
+                        const result = await response.text();
+                        console.log('✅ Server response:', result);
+                        
+                        // Show success notification to user
+                        if (type === 'login') {
+                            showSuccess('✅ Login berhasil dicatat ke sistem!');
+                        } else {
+                            showSuccess('✅ Logout berhasil dicatat ke sistem!');
+                        }
+                        
+                        return true;
+                    } else {
+                        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                    }
                     
-                    // Method 2: Try GET request with URL parameters (fallback)
+                } catch (fetchError) {
+                    clearTimeout(timeoutId);
+                    console.log('❌ CORS method failed, trying no-cors fallback:', fetchError.message);
+                    
+                    // Fallback: no-cors mode (won't get response but data might still be sent)
                     try {
-                        const params = new URLSearchParams({
-                            action: 'saveAbsensi',
-                            nama: attendanceData.nama,
-                            branch: attendanceData.branch,
-                            tanggal: attendanceData.tanggal,
-                            jam: attendanceData.jam,
-                            type: attendanceData.type,
-                            timestamp: attendanceData.timestamp,
-                            durasi: attendanceData.durasi
-                        });
-                        
-                        const getUrl = `${APPS_SCRIPT_URL}?${params.toString()}`;
-                        console.log('🔄 Trying GET method:', getUrl);
-                        
-                        const getResponse = await fetch(getUrl, {
+                        await fetch(getUrl, {
                             method: 'GET',
                             mode: 'no-cors',
                             cache: 'no-cache'
                         });
                         
-                        console.log('📤 Data sent via GET method');
-                        saveSuccess = true;
+                        console.log('📤 Data sent via no-cors fallback');
                         
-                    } catch (getError) {
-                        console.log('❌ Method 2 (GET) also failed:', getError.message);
-                        lastError = getError;
+                        // Show success with caveat
+                        if (type === 'login') {
+                            showSuccess('📤 Login data dikirim ke server (verifikasi manual diperlukan)');
+                        } else {
+                            showSuccess('📤 Logout data dikirim ke server (verifikasi manual diperlukan)');
+                        }
+                        
+                        return true;
+                        
+                    } catch (noCorsError) {
+                        console.log('❌ No-cors fallback also failed:', noCorsError.message);
+                        throw noCorsError;
                     }
-                }
-                
-                if (saveSuccess) {
-                    console.log(`✅ Absensi ${type} berhasil dikirim ke Google Sheets`);
-                    
-                    // Show success notification to user
-                    if (type === 'login') {
-                        showSuccess('✅ Login berhasil dicatat ke sistem!');
-                    } else {
-                        showSuccess('✅ Logout berhasil dicatat ke sistem!');
-                    }
-                    
-                    return true;
-                } else {
-                    throw lastError || new Error('All methods failed');
                 }
                 
             } catch (error) {
@@ -957,12 +963,13 @@
                 });
                 localStorage.setItem('pendingAbsensi', JSON.stringify(pendingAbsensi));
                 
-                showSuccess(`💾 Absensi ${type} disimpan lokal. Data akan tersinkron otomatis.`);
+                showError(`❌ Gagal mengirim ke server: ${error.message}`);
+                showSuccess(`💾 Data disimpan lokal dan akan dikirim ulang otomatis`);
                 return false;
             }
         }
 
-        // Fungsi untuk menyimpan dokumentasi ke Google Sheets - CORS FIXED VERSION
+        // Fungsi untuk menyimpan dokumentasi ke Google Sheets - GITHUB PAGES COMPATIBLE
         async function saveDokumentasiToSheets(dokumentasiData) {
             console.log('🔄 Mencoba menyimpan dokumentasi...');
             
@@ -977,14 +984,23 @@
             try {
                 console.log('📤 Mencoba menyimpan ke Google Sheets...');
                 
-                // Method 1: Try no-cors POST
+                // GitHub Pages Compatible: Use GET method with URL parameters
+                // Note: Images will be converted to base64 and sent via POST if possible, otherwise saved locally
+                
+                // First try POST for complete data including images
                 try {
+                    const controller = new AbortController();
+                    const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout for images
+                    
                     const response = await fetch(APPS_SCRIPT_URL, {
                         method: 'POST',
-                        mode: 'no-cors',
+                        mode: 'cors',
                         cache: 'no-cache',
+                        credentials: 'omit',
+                        signal: controller.signal,
                         headers: {
-                            'Content-Type': 'text/plain',
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json, text/plain, */*'
                         },
                         body: JSON.stringify({
                             action: 'saveDokumentasi',
@@ -992,13 +1008,20 @@
                         })
                     });
                     
-                    console.log('📤 Dokumentasi sent with no-cors mode');
-                    return true;
+                    clearTimeout(timeoutId);
                     
-                } catch (error) {
-                    console.log('❌ POST method failed:', error.message);
+                    if (response.ok) {
+                        const result = await response.text();
+                        console.log('✅ Dokumentasi berhasil dikirim via POST:', result);
+                        return true;
+                    } else {
+                        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                    }
                     
-                    // Method 2: Try GET with URL parameters (for smaller data)
+                } catch (postError) {
+                    console.log('❌ POST method failed:', postError.message);
+                    
+                    // Fallback: GET method without images (text data only)
                     try {
                         const params = new URLSearchParams({
                             action: 'saveDokumentasi',
@@ -1010,25 +1033,108 @@
                             jobdeskTitle: dokumentasiData.jobdeskTitle,
                             komentar: dokumentasiData.komentar,
                             lokasi: dokumentasiData.lokasi,
-                            timestamp: dokumentasiData.timestamp
-                            // Note: Images will be handled separately or saved locally
+                            timestamp: dokumentasiData.timestamp,
+                            hasImages: (dokumentasiData.fotoBefore || dokumentasiData.fotoAfter) ? 'true' : 'false',
+                            _t: Date.now() // Cache buster
                         });
                         
                         const getUrl = `${APPS_SCRIPT_URL}?${params.toString()}`;
-                        console.log('🔄 Trying GET method for dokumentasi');
+                        console.log('🔄 Trying GET method for dokumentasi (without images)');
+                        
+                        const controller2 = new AbortController();
+                        const timeoutId2 = setTimeout(() => controller2.abort(), 10000);
                         
                         const getResponse = await fetch(getUrl, {
                             method: 'GET',
-                            mode: 'no-cors',
-                            cache: 'no-cache'
+                            mode: 'cors',
+                            cache: 'no-cache',
+                            credentials: 'omit',
+                            signal: controller2.signal,
+                            headers: {
+                                'Accept': 'application/json, text/plain, */*'
+                            }
                         });
                         
-                        console.log('📤 Dokumentasi sent via GET method');
-                        return true;
+                        clearTimeout(timeoutId2);
+                        
+                        if (getResponse.ok) {
+                            const result = await getResponse.text();
+                            console.log('✅ Dokumentasi text data berhasil dikirim via GET:', result);
+                            
+                            // Save images locally if they exist
+                            if (dokumentasiData.fotoBefore || dokumentasiData.fotoAfter) {
+                                const localImages = JSON.parse(localStorage.getItem('pendingImages') || '[]');
+                                localImages.push({
+                                    id: dokumentasiData.id,
+                                    nama: dokumentasiData.nama,
+                                    branch: dokumentasiData.branch,
+                                    tanggal: dokumentasiData.tanggal,
+                                    jobdeskTitle: dokumentasiData.jobdeskTitle,
+                                    fotoBefore: dokumentasiData.fotoBefore,
+                                    fotoAfter: dokumentasiData.fotoAfter,
+                                    timestamp: dokumentasiData.timestamp
+                                });
+                                localStorage.setItem('pendingImages', JSON.stringify(localImages));
+                                console.log('📷 Images saved locally for later upload');
+                            }
+                            
+                            return true;
+                        } else {
+                            throw new Error(`GET HTTP ${getResponse.status}: ${getResponse.statusText}`);
+                        }
                         
                     } catch (getError) {
                         console.log('❌ GET method also failed:', getError.message);
-                        throw getError;
+                        
+                        // Final fallback: no-cors mode
+                        try {
+                            const params = new URLSearchParams({
+                                action: 'saveDokumentasi',
+                                nama: dokumentasiData.nama,
+                                branch: dokumentasiData.branch,
+                                tanggal: dokumentasiData.tanggal,
+                                jam: dokumentasiData.jam,
+                                jobdeskId: dokumentasiData.jobdeskId,
+                                jobdeskTitle: dokumentasiData.jobdeskTitle,
+                                komentar: dokumentasiData.komentar,
+                                lokasi: dokumentasiData.lokasi,
+                                timestamp: dokumentasiData.timestamp,
+                                _t: Date.now()
+                            });
+                            
+                            const noCorsUrl = `${APPS_SCRIPT_URL}?${params.toString()}`;
+                            
+                            await fetch(noCorsUrl, {
+                                method: 'GET',
+                                mode: 'no-cors',
+                                cache: 'no-cache'
+                            });
+                            
+                            console.log('📤 Dokumentasi sent via no-cors fallback');
+                            
+                            // Save images locally
+                            if (dokumentasiData.fotoBefore || dokumentasiData.fotoAfter) {
+                                const localImages = JSON.parse(localStorage.getItem('pendingImages') || '[]');
+                                localImages.push({
+                                    id: dokumentasiData.id,
+                                    nama: dokumentasiData.nama,
+                                    branch: dokumentasiData.branch,
+                                    tanggal: dokumentasiData.tanggal,
+                                    jobdeskTitle: dokumentasiData.jobdeskTitle,
+                                    fotoBefore: dokumentasiData.fotoBefore,
+                                    fotoAfter: dokumentasiData.fotoAfter,
+                                    timestamp: dokumentasiData.timestamp
+                                });
+                                localStorage.setItem('pendingImages', JSON.stringify(localImages));
+                                console.log('📷 Images saved locally (no-cors mode)');
+                            }
+                            
+                            return true;
+                            
+                        } catch (noCorsError) {
+                            console.log('❌ No-cors fallback also failed:', noCorsError.message);
+                            throw noCorsError;
+                        }
                     }
                 }
                 
@@ -1134,6 +1240,37 @@
         // Load data saat halaman dimuat
         window.addEventListener('load', async function() {
             console.log('🚀 Halaman dimuat, memulai inisialisasi...');
+            console.log('🌐 Environment info:');
+            console.log('   - User Agent:', navigator.userAgent);
+            console.log('   - Location:', window.location.href);
+            console.log('   - Protocol:', window.location.protocol);
+            console.log('   - Host:', window.location.host);
+            console.log('   - Apps Script URL:', APPS_SCRIPT_URL);
+            console.log('   - Online status:', navigator.onLine);
+            
+            // Test CORS capability
+            try {
+                const testUrl = `${APPS_SCRIPT_URL}?action=test&_t=${Date.now()}`;
+                console.log('🧪 Testing CORS capability with:', testUrl);
+                
+                const testResponse = await fetch(testUrl, {
+                    method: 'GET',
+                    mode: 'cors',
+                    cache: 'no-cache',
+                    credentials: 'omit'
+                });
+                
+                if (testResponse.ok) {
+                    const result = await testResponse.text();
+                    console.log('✅ CORS test successful:', result);
+                } else {
+                    console.log('⚠️ CORS test failed with status:', testResponse.status);
+                }
+            } catch (corsError) {
+                console.log('❌ CORS test error:', corsError.message);
+                console.log('💡 Will use fallback methods for GitHub Pages compatibility');
+            }
+            
             await loadMDDataFromSheets();
         });
 
@@ -2087,5 +2224,5 @@
         window.toggleJobdesk = toggleJobdesk;
         window.openDokumentasiModal = openDokumentasiModal;
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'99425a53e20b7d69',t:'MTc2MTQwMjAwOC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'99426ec577176d06',t:'MTc2MTQwMjg0NS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
