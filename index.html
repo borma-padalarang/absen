@@ -186,7 +186,15 @@
                             <div>
                                 <h1 class="text-xl font-semibold text-gray-900" id="welcomeText">Selamat Datang</h1>
                                 <p class="text-sm text-gray-600" id="branchText">Branch: -</p>
-                                <p class="text-sm text-blue-600 font-medium">Durasi Kerja: <span id="workDuration">00:00:00</span></p>
+                                <div class="text-xs sm:text-sm text-blue-600 font-medium">
+                                    <div class="flex flex-col sm:flex-row sm:items-center sm:space-x-2">
+                                        <span>Durasi Kerja:</span>
+                                        <span id="workDuration" class="font-mono text-sm sm:text-base">00:00:00</span>
+                                    </div>
+                                    <div id="workDurationText" class="text-xs text-blue-500 mt-1">
+                                        0 jam 0 menit 0 detik
+                                    </div>
+                                </div>
                             </div>
                         </div>
                         <div class="flex space-x-2">
@@ -257,10 +265,13 @@
                 <div class="mb-10">
                     <div class="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl p-8 border border-blue-100">
                         <p class="text-lg text-gray-600 mb-4">Anda bergabung dengan durasi waktu</p>
-                        <div class="text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 mb-2" id="thankYouDurasi">
+                        <div class="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 mb-2 break-all" id="thankYouDurasi">
                             00:00:00
                         </div>
-                        <p class="text-sm text-gray-500 uppercase tracking-wider font-medium">Jam : Menit : Detik</p>
+                        <p class="text-xs sm:text-sm text-gray-500 uppercase tracking-wider font-medium mb-2">Jam : Menit : Detik</p>
+                        <p class="text-base sm:text-lg text-gray-600 font-medium" id="thankYouDurasiText">
+                            0 jam 0 menit 0 detik
+                        </p>
                     </div>
                 </div>
 
@@ -797,12 +808,36 @@
             const seconds = Math.floor((duration % (1000 * 60)) / 1000);
             
             const durationText = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            const durationReadable = formatDurationReadable(hours, minutes, seconds);
             
             // Update display jika ada element untuk menampilkan durasi
             const durationElement = document.getElementById('workDuration');
+            const durationTextElement = document.getElementById('workDurationText');
+            
             if (durationElement) {
                 durationElement.textContent = durationText;
             }
+            
+            if (durationTextElement) {
+                durationTextElement.textContent = durationReadable;
+            }
+        }
+        
+        // Fungsi untuk format durasi yang mudah dibaca
+        function formatDurationReadable(hours, minutes, seconds) {
+            const parts = [];
+            
+            if (hours > 0) {
+                parts.push(`${hours} jam`);
+            }
+            if (minutes > 0) {
+                parts.push(`${minutes} menit`);
+            }
+            if (seconds > 0 || parts.length === 0) {
+                parts.push(`${seconds} detik`);
+            }
+            
+            return parts.join(' ');
         }
         
         // Fungsi untuk menghentikan tracking waktu kerja - ENHANCED VERSION
@@ -855,6 +890,11 @@
             
             // Tampilkan durasi kerja dengan format yang elegan
             document.getElementById('thankYouDurasi').textContent = workDuration;
+            
+            // Parse durasi untuk format yang mudah dibaca
+            const [hours, minutes, seconds] = workDuration.split(':').map(Number);
+            const readableDuration = formatDurationReadable(hours, minutes, seconds);
+            document.getElementById('thankYouDurasiText').textContent = readableDuration;
             
             // Sembunyikan dashboard dan tampilkan halaman terima kasih
             dashboardPage.classList.add('hidden');
@@ -2037,5 +2077,5 @@
         window.toggleJobdesk = toggleJobdesk;
         window.openDokumentasiModal = openDokumentasiModal;
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'99435fa893cd7324',t:'MTc2MTQxMjcxMi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'994373e282d01c0e',t:'MTc2MTQxMzU0MC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
