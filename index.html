@@ -458,7 +458,7 @@
         let dokumentasiData = JSON.parse(localStorage.getItem('dokumentasiData') || '[]');
         
         // Storage untuk jobdesk yang dapat disinkronisasi
-        //let jobdeskData = JSON.parse(localStorage.getItem('jobdeskData') || JSON.stringify([
+        let jobdeskData = JSON.parse(localStorage.getItem('jobdeskData') || JSON.stringify([
             {
                 title: "CLEANING",
                 desc: "Melakukan pembersihan pada produk,selving,dan profil",
@@ -499,7 +499,7 @@
         async function loadMDDataFromSheets() {
             try {
                 console.log('Mencoba mengambil data langsung dari Google Sheets...');
-                console.log('URL:', https://docs.google.com/spreadsheets/d/17pU_5UwX-z6UVaWlXrsqsXDHgj2FFPkFxXNCBBAZc8Y/edit?gid=1347466483);
+                console.log('URL:', ;
                 
                 const response = await fetch(SHEETS_URL);
                 
@@ -1602,4 +1602,5 @@
     </script>
 <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'993b1347022bb5ee',t:'MTc2MTMyNTY5Ny4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
+
 
