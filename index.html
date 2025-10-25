@@ -258,26 +258,26 @@
                                 <div class="space-y-4">
                                     <div>
                                         <label class="block text-sm font-medium text-gray-700 mb-2">Jobdesk 1</label>
-                                        <input type="text" id="jobdesk1Title" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500" value="Kunjungan Nasabah">
-                                        <textarea id="jobdesk1Desc" rows="2" class="w-full mt-2 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500" placeholder="Deskripsi jobdesk">Melakukan kunjungan ke nasabah potensial dan existing</textarea>
+                                        <input type="text" id="jobdesk1Title" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500" value="CLEANING">
+                                        <textarea id="jobdesk1Desc" rows="2" class="w-full mt-2 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500" placeholder="Deskripsi jobdesk">Melakukan pembersihan pada produk,selving,dan profil</textarea>
                                     </div>
                                     
                                     <div>
                                         <label class="block text-sm font-medium text-gray-700 mb-2">Jobdesk 2</label>
-                                        <input type="text" id="jobdesk2Title" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500" value="Laporan Harian">
-                                        <textarea id="jobdesk2Desc" rows="2" class="w-full mt-2 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500" placeholder="Deskripsi jobdesk">Menyusun dan mengirim laporan aktivitas harian</textarea>
+                                        <input type="text" id="jobdesk2Title" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500" value="CEK EXPIRED DATE">
+                                        <textarea id="jobdesk2Desc" rows="2" class="w-full mt-2 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500" placeholder="Deskripsi jobdesk">Melakukan pengecekan expired date pada semua barang 1 per 1 dengan teliti</textarea>
                                     </div>
                                     
                                     <div>
                                         <label class="block text-sm font-medium text-gray-700 mb-2">Jobdesk 3</label>
-                                        <input type="text" id="jobdesk3Title" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500" value="Follow Up Prospek">
-                                        <textarea id="jobdesk3Desc" rows="2" class="w-full mt-2 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500" placeholder="Deskripsi jobdesk">Menindaklanjuti prospek yang sudah dikunjungi</textarea>
+                                        <input type="text" id="jobdesk3Title" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500" value="FIFO">
+                                        <textarea id="jobdesk3Desc" rows="2" class="w-full mt-2 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500" placeholder="Deskripsi jobdesk">Melakukan switching pada produk 'pertama masuk = pertama keluar' lakukan hal ini kepada semua produk </textarea>
                                     </div>
                                     
                                     <div>
                                         <label class="block text-sm font-medium text-gray-700 mb-2">Jobdesk 4</label>
-                                        <input type="text" id="jobdesk4Title" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500" value="Update Data Nasabah">
-                                        <textarea id="jobdesk4Desc" rows="2" class="w-full mt-2 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500" placeholder="Deskripsi jobdesk">Memperbarui database nasabah dan informasi terkini</textarea>
+                                        <input type="text" id="jobdesk4Title" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500" value="CEK PRICE CARD DAN POP">
+                                        <textarea id="jobdesk4Desc" rows="2" class="w-full mt-2 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500" placeholder="Deskripsi jobdesk">Memastikan label harga pada barang semua lengkap dan sesuai</textarea>
                                     </div>
                                     
                                     <button id="updateJobdeskBtn" class="w-full bg-green-600 text-white py-3 px-4 rounded-lg hover:bg-green-700 transition-colors font-medium">
@@ -458,25 +458,25 @@
         let dokumentasiData = JSON.parse(localStorage.getItem('dokumentasiData') || '[]');
         
         // Storage untuk jobdesk yang dapat disinkronisasi
-        let jobdeskData = JSON.parse(localStorage.getItem('jobdeskData') || JSON.stringify([
+        //let jobdeskData = JSON.parse(localStorage.getItem('jobdeskData') || JSON.stringify([
             {
-                title: "Kunjungan Nasabah",
-                desc: "Melakukan kunjungan ke nasabah potensial dan existing",
+                title: "CLEANING",
+                desc: "Melakukan pembersihan pada produk,selving,dan profil",
                 color: "blue"
             },
             {
-                title: "Laporan Harian",
-                desc: "Menyusun dan mengirim laporan aktivitas harian",
+                title: "CEK EXPIRED DATE",
+                desc: "Melakukan pengecekan expired date pada semua barang 1 per 1 dengan teliti",
                 color: "green"
             },
             {
-                title: "Follow Up Prospek",
-                desc: "Menindaklanjuti prospek yang sudah dikunjungi",
+                title: "FIFO",
+                desc: "Melakukan switching pada produk 'pertama masuk = pertama keluar' lakukan hal ini kepada semua produk",
                 color: "yellow"
             },
             {
-                title: "Update Data Nasabah",
-                desc: "Memperbarui database nasabah dan informasi terkini",
+                title: "CEK PRICE CARD DAN POP ",
+                desc: "Memastikan label harga pada barang semua lengkap dan sesuai",
                 color: "purple"
             }
         ]));
@@ -499,7 +499,7 @@
         async function loadMDDataFromSheets() {
             try {
                 console.log('Mencoba mengambil data langsung dari Google Sheets...');
-                console.log('URL:', SHEETS_URL);
+                console.log('URL:', https://docs.google.com/spreadsheets/d/17pU_5UwX-z6UVaWlXrsqsXDHgj2FFPkFxXNCBBAZc8Y/edit?gid=1347466483);
                 
                 const response = await fetch(SHEETS_URL);
                 
@@ -1602,3 +1602,4 @@
     </script>
 <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'993b1347022bb5ee',t:'MTc2MTMyNTY5Ny4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
+
