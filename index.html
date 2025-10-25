@@ -1,10 +1,4 @@
-<!-- Sebelum -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  
-  <!-- Sesudah -->
-  <script src="https://cdn.jsdelivr.net/npm/tailwindcss@3.4.0/lib/index.min.js"></script>
-  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@3.4.0/tailwind.min.css" rel="stylesheet">
-  <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="id">
 <head>
     <meta charset="UTF-8">
@@ -439,7 +433,7 @@
         const MD_SHEETS_URL = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:json&sheet=${MD_SHEET_NAME}`;
         
         // Apps Script URL untuk menyimpan dokumentasi - UPDATED URL
-        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyzInmMWwqtStVskCdKXyBe7cr9UQ59VFYf5WwGWKRDhZi7Ln81jjYDevHq_udcyDmhAg/exec';
+        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyQXO5L78DlEvexBSW71soFQuZbaeK7siHdyaP3T8u5nnGZSKtPDlfJ9vmLZmypZ4VJuA/exec';
         
         // Admin credentials
         const ADMIN_USERNAME = 'admin';
@@ -1482,9 +1476,12 @@
                         const result = await response.json();
                         console.log('📥 Data dokumentasi diterima via GET:', result);
                         
-                        if (result.success && result.data) {
+                        if (result.success && result.data && Array.isArray(result.data) && result.data.length > 0) {
                             displayDokumentasiData(result.data);
                             return;
+                        } else {
+                            console.log('⚠️ Server response tidak mengandung data dokumentasi yang valid');
+                            console.log('📋 Response structure:', result);
                         }
                     }
                 } catch (getError) {
@@ -1492,6 +1489,7 @@
                 }
                 
                 // Fallback: Load from localStorage
+                console.log('📱 Server belum memiliki data dokumentasi atau Apps Script belum dikonfigurasi untuk mengembalikan data');
                 console.log('📱 Loading dokumentasi from localStorage...');
                 const localDocs = JSON.parse(localStorage.getItem('pendingDokumentasi') || '[]');
                 const completedDocs = JSON.parse(localStorage.getItem('completedJobdesk') || '{}');
@@ -1527,9 +1525,9 @@
                 
                 if (allDocs.length > 0) {
                     displayDokumentasiData(allDocs);
-                    adminDataList.innerHTML += '<div class="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg"><p class="text-yellow-800 text-sm">⚠️ Data ditampilkan dari penyimpanan lokal. Koneksi ke server bermasalah.</p></div>';
+                    adminDataList.innerHTML += '<div class="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg"><p class="text-blue-800 text-sm">ℹ️ Data ditampilkan dari jobdesk yang telah diselesaikan dan penyimpanan lokal. Server Apps Script belum dikonfigurasi untuk mengembalikan data dokumentasi.</p></div>';
                 } else {
-                    adminDataList.innerHTML = '<p class="text-gray-600">Belum ada data dokumentasi.</p>';
+                    adminDataList.innerHTML = '<div class="text-center py-8"><div class="bg-gray-50 rounded-lg p-6"><svg class="w-12 h-12 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg><p class="text-gray-600 font-medium">Belum ada dokumentasi jobdesk</p><p class="text-gray-500 text-sm mt-2">Data akan muncul setelah MD menyelesaikan dan mendokumentasikan jobdesk</p></div></div>';
                 }
                 
             } catch (error) {
@@ -1625,9 +1623,12 @@
                         const result = await response.json();
                         console.log('📥 Data rekap login diterima via GET:', result);
                         
-                        if (result.success && result.data) {
+                        if (result.success && result.data && Array.isArray(result.data) && result.data.length > 0) {
                             displayRekapLoginData(result.data);
                             return;
+                        } else {
+                            console.log('⚠️ Server response tidak mengandung data absensi yang valid');
+                            console.log('📋 Response structure:', result);
                         }
                     }
                 } catch (getError) {
@@ -1635,6 +1636,7 @@
                 }
                 
                 // Fallback: Load from localStorage
+                console.log('📱 Server belum memiliki data absensi atau Apps Script belum dikonfigurasi untuk mengembalikan data');
                 console.log('📱 Loading absensi from localStorage...');
                 const pendingAbsensi = JSON.parse(localStorage.getItem('pendingAbsensi') || '[]');
                 
@@ -1658,9 +1660,9 @@
                 
                 if (allAbsensi.length > 0) {
                     displayRekapLoginData(allAbsensi);
-                    rekapList.innerHTML += '<div class="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg"><p class="text-yellow-800 text-sm">⚠️ Data ditampilkan dari penyimpanan lokal. Koneksi ke server bermasalah.</p></div>';
+                    rekapList.innerHTML += '<div class="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg"><p class="text-blue-800 text-sm">ℹ️ Data ditampilkan dari sesi aktif dan penyimpanan lokal. Server Apps Script belum dikonfigurasi untuk mengembalikan data absensi.</p></div>';
                 } else {
-                    rekapList.innerHTML = '<p class="text-gray-600">Belum ada data login MD.</p>';
+                    rekapList.innerHTML = '<div class="text-center py-8"><div class="bg-gray-50 rounded-lg p-6"><svg class="w-12 h-12 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg><p class="text-gray-600 font-medium">Belum ada data login MD</p><p class="text-gray-500 text-sm mt-2">Data akan muncul setelah MD melakukan login</p></div></div>';
                 }
                 
             } catch (error) {
@@ -2085,5 +2087,5 @@
         window.toggleJobdesk = toggleJobdesk;
         window.openDokumentasiModal = openDokumentasiModal;
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'994236e043a589a1',t:'MTc2MTQwMDU1Ni4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'99425a53e20b7d69',t:'MTc2MTQwMjAwOC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
