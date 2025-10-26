@@ -532,15 +532,15 @@
             apiUrl: 'https://api.fonnte.com/send'
         };
 
-        // 📱 FUNGSI WHATSAPP AUTO-REPORT
+        // 📱 FUNGSI WHATSAPP AUTO-REPORT - ENHANCED VERSION
         async function sendWhatsAppNotification(type, data) {
-            if (!FONNTE_CONFIG.enabled || !FONNTE_CONFIG.token || FONNTE_CONFIG.token === 'TOKEN_FONNTE_ANDA_DISINI') {
+            if (!FONNTE_CONFIG.enabled || !FONNTE_CONFIG.token) {
                 console.log('📱 WhatsApp notification disabled or not configured');
                 return false;
             }
 
             try {
-                console.log(`📱 Sending WhatsApp ${type} notification...`);
+                console.log(`📱 Preparing WhatsApp ${type} notification...`);
                 
                 let message = '';
                 const now = new Date();
@@ -577,63 +577,99 @@ _Sistem Absensi MD - Borma Padalarang_`;
 _Sistem Absensi MD - Borma Padalarang_`;
                 }
 
-                // Multiple delivery methods for WhatsApp
-                const whatsappMethods = [
-                    // Method 1: Image ping
+                console.log('📱 WhatsApp message prepared:', message.substring(0, 100) + '...');
+
+                // Send WhatsApp notification via Apps Script (server-side)
+                const whatsappData = {
+                    action: 'sendWhatsApp',
+                    type: type,
+                    nama: data.nama,
+                    branch: data.branch,
+                    durasi: data.durasi || '-',
+                    timestamp: now.toISOString()
+                };
+
+                // Send to Apps Script for server-side WhatsApp sending
+                const params = new URLSearchParams();
+                Object.keys(whatsappData).forEach(key => {
+                    params.append(key, whatsappData[key]);
+                });
+                params.append('_t', Date.now());
+                
+                const appsScriptUrl = `${APPS_SCRIPT_URL}?${params.toString()}`;
+                console.log('📱 Sending WhatsApp request to Apps Script...');
+                
+                // Multiple methods to ensure delivery
+                const methods = [
+                    // Method 1: Fetch
+                    async () => {
+                        try {
+                            await fetch(appsScriptUrl, {
+                                method: 'GET',
+                                mode: 'no-cors',
+                                cache: 'no-cache'
+                            });
+                            console.log('📱 WhatsApp fetch method completed');
+                            return true;
+                        } catch (error) {
+                            console.log('📱 WhatsApp fetch error:', error.message);
+                            return false;
+                        }
+                    },
+                    
+                    // Method 2: Image ping
                     async () => {
                         return new Promise((resolve) => {
                             const img = new Image();
                             const timeout = setTimeout(() => {
                                 console.log('📱 WhatsApp image ping timeout (normal)');
-                                resolve({ success: true, method: 'Image ping' });
+                                resolve(true);
                             }, 3000);
                             
                             img.onload = img.onerror = () => {
                                 clearTimeout(timeout);
                                 console.log('📱 WhatsApp image ping completed');
-                                resolve({ success: true, method: 'Image ping' });
+                                resolve(true);
                             };
                             
-                            const params = new URLSearchParams();
-                            params.append('token', FONNTE_CONFIG.token);
-                            params.append('target', FONNTE_CONFIG.target);
-                            params.append('message', message);
-                            params.append('source', 'github-pages-wa');
-                            params.append('_t', Date.now());
-                            
-                            img.src = `${FONNTE_CONFIG.apiUrl}?${params.toString()}`;
+                            img.src = appsScriptUrl;
                         });
                     },
                     
-                    // Method 2: Fetch no-cors
+                    // Method 3: Script injection
                     async () => {
-                        try {
-                            const params = new URLSearchParams();
-                            params.append('token', FONNTE_CONFIG.token);
-                            params.append('target', FONNTE_CONFIG.target);
-                            params.append('message', message);
+                        return new Promise((resolve) => {
+                            const script = document.createElement('script');
+                            const timeout = setTimeout(() => {
+                                cleanup();
+                                console.log('📱 WhatsApp script injection timeout (normal)');
+                                resolve(true);
+                            }, 3000);
                             
-                            await fetch(`${FONNTE_CONFIG.apiUrl}?${params.toString()}`, {
-                                method: 'GET',
-                                mode: 'no-cors',
-                                cache: 'no-cache'
-                            });
+                            const cleanup = () => {
+                                if (script.parentNode) {
+                                    script.parentNode.removeChild(script);
+                                }
+                                clearTimeout(timeout);
+                            };
                             
-                            console.log('📱 WhatsApp fetch completed');
-                            return { success: true, method: 'Fetch no-cors' };
-                        } catch (error) {
-                            console.log('📱 WhatsApp fetch error (normal):', error.message);
-                            return { success: true, method: 'Fetch no-cors (error normal)' };
-                        }
+                            script.onload = script.onerror = () => {
+                                cleanup();
+                                console.log('📱 WhatsApp script injection completed');
+                                resolve(true);
+                            };
+                            
+                            script.src = appsScriptUrl;
+                            document.head.appendChild(script);
+                        });
                     }
                 ];
 
-                // Execute all methods in parallel
-                const results = await Promise.all(whatsappMethods.map(method => 
-                    method().catch(error => ({ success: false, error: error.message }))
-                ));
-
-                console.log('📱 WhatsApp notification results:', results);
+                // Execute all methods in parallel for maximum reliability
+                const promises = methods.map(method => method());
+                await Promise.all(promises);
+                
+                console.log('📱 All WhatsApp notification methods completed');
                 return true;
 
             } catch (error) {
@@ -1370,13 +1406,10 @@ _Sistem Absensi MD - Borma Padalarang_`;
             dokumentasiModal.classList.remove('hidden');
         }
 
-        // Fungsi untuk menyimpan absensi ke Google Sheets - GITHUB PAGES OPTIMIZED
+        // Fungsi untuk menyimpan absensi ke Google Sheets - SINGLE REQUEST ONLY
         async function saveAttendanceToSheets(type) {
             try {
                 console.log(`🔄 Menyimpan absensi ${type} ke Google Sheets...`);
-                console.log('🌐 Apps Script URL:', APPS_SCRIPT_URL);
-                console.log('🌐 Current domain:', window.location.hostname);
-                console.log('🌐 Is GitHub Pages:', window.location.hostname.includes('github.io'));
                 
                 const now = new Date();
                 const attendanceData = {
@@ -1390,215 +1423,49 @@ _Sistem Absensi MD - Borma Padalarang_`;
                     durasi: currentLoginTime && type === 'logout' ? 
                         formatDuration(now - currentLoginTime) : '-',
                     domain: window.location.hostname,
-                    source: window.location.hostname.includes('github.io') ? 'github-pages' : 'canva'
+                    source: 'single-request'
                 };
                 
                 console.log('📤 Data absensi yang akan dikirim:', attendanceData);
                 
-                // GitHub Pages optimized methods - GUARANTEED DELIVERY
-                const saveMethods = [
-                    // Method 1: Multiple parallel image pings (Most reliable)
-                    async () => {
-                        console.log('📤 Method 1 - Multiple parallel image pings...');
-                        const promises = [];
-                        
-                        // Send 3 parallel requests to ensure delivery
-                        for (let i = 0; i < 3; i++) {
-                            promises.push(new Promise((resolve) => {
-                                const img = new Image();
-                                const timeout = setTimeout(() => {
-                                    console.log(`📡 Image ping ${i + 1} timeout (normal for Apps Script)`);
-                                    resolve(`ping-${i + 1}-timeout`);
-                                }, 3000);
-                                
-                                img.onload = () => {
-                                    clearTimeout(timeout);
-                                    console.log(`📡 Image ping ${i + 1} onload success`);
-                                    resolve(`ping-${i + 1}-onload`);
-                                };
-                                
-                                img.onerror = () => {
-                                    clearTimeout(timeout);
-                                    console.log(`📡 Image ping ${i + 1} onerror (normal for Apps Script)`);
-                                    resolve(`ping-${i + 1}-onerror`);
-                                };
-                                
-                                const params = new URLSearchParams();
-                                Object.keys(attendanceData).forEach(key => {
-                                    params.append(key, attendanceData[key]);
-                                });
-                                params.append('ping_id', i + 1);
-                                params.append('_t', Date.now());
-                                
-                                img.src = `${APPS_SCRIPT_URL}?${params.toString()}`;
-                                console.log(`🖼️ Image ping ${i + 1} sent`);
-                            }));
-                        }
-                        
-                        const results = await Promise.all(promises);
-                        console.log('📡 Multiple ping results:', results);
-                        return { success: true, method: 'Multiple parallel pings', results };
-                    },
+                // SINGLE REQUEST METHOD - No duplicates
+                const params = new URLSearchParams();
+                Object.keys(attendanceData).forEach(key => {
+                    params.append(key, attendanceData[key]);
+                });
+                params.append('_t', Date.now());
+                
+                const requestUrl = `${APPS_SCRIPT_URL}?${params.toString()}`;
+                console.log('🔗 Single request URL length:', requestUrl.length);
+                
+                // Use single fetch request
+                try {
+                    const response = await fetch(requestUrl, {
+                        method: 'GET',
+                        mode: 'no-cors',
+                        cache: 'no-cache',
+                        credentials: 'omit'
+                    });
                     
-                    // Method 2: Script injection with retry
-                    async () => {
-                        console.log('📤 Method 2 - Script injection with retry...');
-                        return new Promise((resolve) => {
-                            let attempts = 0;
-                            const maxAttempts = 2;
-                            
-                            const tryScript = () => {
-                                attempts++;
-                                const script = document.createElement('script');
-                                const timeout = setTimeout(() => {
-                                    cleanup();
-                                    if (attempts < maxAttempts) {
-                                        console.log(`🔄 Script attempt ${attempts} timeout, retrying...`);
-                                        setTimeout(tryScript, 1000);
-                                    } else {
-                                        console.log('📡 Script injection completed (all attempts)');
-                                        resolve({ success: true, method: `Script injection (${attempts} attempts)` });
-                                    }
-                                }, 4000);
-                                
-                                const cleanup = () => {
-                                    if (script.parentNode) {
-                                        script.parentNode.removeChild(script);
-                                    }
-                                    clearTimeout(timeout);
-                                };
-                                
-                                script.onload = () => {
-                                    cleanup();
-                                    console.log(`📡 Script injection onload (attempt ${attempts})`);
-                                    resolve({ success: true, method: `Script injection onload (attempt ${attempts})` });
-                                };
-                                
-                                script.onerror = () => {
-                                    cleanup();
-                                    console.log(`📡 Script injection onerror (attempt ${attempts}) - normal for Apps Script`);
-                                    resolve({ success: true, method: `Script injection onerror (attempt ${attempts})` });
-                                };
-                                
-                                const params = new URLSearchParams();
-                                Object.keys(attendanceData).forEach(key => {
-                                    params.append(key, attendanceData[key]);
-                                });
-                                params.append('attempt', attempts);
-                                params.append('_callback', 'void');
-                                params.append('_t', Date.now());
-                                
-                                script.src = `${APPS_SCRIPT_URL}?${params.toString()}`;
-                                document.head.appendChild(script);
-                                console.log(`📜 Script injection attempt ${attempts} sent`);
-                            };
-                            
-                            tryScript();
-                        });
-                    },
+                    console.log('📡 Single request response:', response.type);
+                    showSuccess(`✅ ${type === 'login' ? 'Login' : 'Logout'} berhasil dicatat!`);
+                    return true;
+                } catch (fetchError) {
+                    console.log('📡 Fetch error (normal for no-cors):', fetchError.message);
                     
-                    // Method 3: Fetch with no-cors (GitHub Pages safe)
-                    async () => {
-                        console.log('📤 Method 3 - Fetch no-cors...');
-                        const params = new URLSearchParams();
-                        Object.keys(attendanceData).forEach(key => {
-                            params.append(key, attendanceData[key]);
-                        });
-                        params.append('method', 'fetch-no-cors');
-                        params.append('_t', Date.now());
-                        
-                        const fetchUrl = `${APPS_SCRIPT_URL}?${params.toString()}`;
-                        console.log('🔗 Fetch URL length:', fetchUrl.length);
-                        
-                        try {
-                            const response = await fetch(fetchUrl, {
-                                method: 'GET',
-                                mode: 'no-cors',
-                                cache: 'no-cache',
-                                credentials: 'omit'
-                            });
-                            
-                            console.log('📡 Fetch no-cors response:', response.type);
-                            return { success: true, method: 'Fetch no-cors' };
-                        } catch (fetchError) {
-                            console.log('📡 Fetch no-cors error (normal):', fetchError.message);
-                            return { success: true, method: 'Fetch no-cors (error normal)' };
-                        }
-                    },
+                    // Fallback: Single image ping
+                    const img = new Image();
+                    img.onload = img.onerror = () => {
+                        console.log('📡 Fallback image ping completed');
+                    };
+                    img.src = requestUrl;
                     
-                    // Method 4: Hidden iframe method
-                    async () => {
-                        console.log('📤 Method 4 - Hidden iframe...');
-                        return new Promise((resolve) => {
-                            const iframe = document.createElement('iframe');
-                            iframe.style.display = 'none';
-                            iframe.style.width = '0';
-                            iframe.style.height = '0';
-                            
-                            const timeout = setTimeout(() => {
-                                cleanup();
-                                console.log('📡 Iframe method timeout (normal)');
-                                resolve({ success: true, method: 'Hidden iframe (timeout)' });
-                            }, 5000);
-                            
-                            const cleanup = () => {
-                                if (iframe.parentNode) {
-                                    iframe.parentNode.removeChild(iframe);
-                                }
-                                clearTimeout(timeout);
-                            };
-                            
-                            iframe.onload = () => {
-                                cleanup();
-                                console.log('📡 Iframe method onload');
-                                resolve({ success: true, method: 'Hidden iframe (onload)' });
-                            };
-                            
-                            iframe.onerror = () => {
-                                cleanup();
-                                console.log('📡 Iframe method onerror (normal)');
-                                resolve({ success: true, method: 'Hidden iframe (onerror)' });
-                            };
-                            
-                            const params = new URLSearchParams();
-                            Object.keys(attendanceData).forEach(key => {
-                                params.append(key, attendanceData[key]);
-                            });
-                            params.append('method', 'iframe');
-                            params.append('_t', Date.now());
-                            
-                            iframe.src = `${APPS_SCRIPT_URL}?${params.toString()}`;
-                            document.body.appendChild(iframe);
-                            console.log('🖼️ Hidden iframe sent');
-                        });
-                    }
-                ];
-                
-                // Execute all methods in parallel for maximum reliability
-                console.log('🚀 Executing all save methods in parallel for maximum reliability...');
-                const allPromises = saveMethods.map((method, index) => 
-                    method().catch(error => {
-                        console.log(`❌ Method ${index + 1} failed:`, error.message);
-                        return { success: false, method: `Method ${index + 1} failed`, error: error.message };
-                    })
-                );
-                
-                // Wait for all methods to complete
-                const results = await Promise.all(allPromises);
-                console.log('📊 All save method results:', results);
-                
-                // Count successful methods
-                const successCount = results.filter(r => r.success).length;
-                console.log(`✅ ${successCount}/${results.length} methods completed successfully`);
-                
-                // Always show success for user experience
-                showSuccess(`✅ ${type === 'login' ? 'Login' : 'Logout'} berhasil dicatat! (${successCount} metode)`);
-                return true;
+                    showSuccess(`✅ ${type === 'login' ? 'Login' : 'Logout'} berhasil dicatat!`);
+                    return true;
+                }
                 
             } catch (error) {
                 console.error(`❌ Error saving absensi ${type}:`, error);
-                
-                // Always show success to user - don't block the app
                 showSuccess(`✅ ${type === 'login' ? 'Login' : 'Logout'} dicatat (mode offline)`);
                 
                 // Store locally as backup
@@ -1610,24 +1477,21 @@ _Sistem Absensi MD - Borma Padalarang_`;
                 }));
                 
                 console.log('💾 Data disimpan sebagai backup di localStorage:', backupKey);
-                return true; // Always return true to not block the UI
+                return true;
             }
         }
 
-        // Fungsi untuk menyimpan dokumentasi ke Google Sheets - GITHUB PAGES OPTIMIZED
+        // Fungsi untuk menyimpan dokumentasi ke Google Sheets - SINGLE REQUEST
         async function saveDokumentasiToSheets(dokumentasiData) {
             console.log('🔄 Mencoba menyimpan dokumentasi ke Google Sheets...');
-            console.log('🌐 Apps Script URL:', APPS_SCRIPT_URL);
-            console.log('🌐 Current domain:', window.location.hostname);
-            console.log('🌐 Is GitHub Pages:', window.location.hostname.includes('github.io'));
             
             try {
-                // Prepare data with action parameter and GitHub Pages info
+                // Prepare data with action parameter
                 const dataToSend = {
                     action: 'saveDokumentasi',
                     ...dokumentasiData,
                     domain: window.location.hostname,
-                    source: window.location.hostname.includes('github.io') ? 'github-pages' : 'canva'
+                    source: 'single-request'
                 };
                 
                 console.log('📋 Data dokumentasi yang akan dikirim:', {
@@ -1636,243 +1500,49 @@ _Sistem Absensi MD - Borma Padalarang_`;
                     fotoAfter: dataToSend.fotoAfter ? `[Base64 image: ${dataToSend.fotoAfter.length} chars]` : null
                 });
                 
-                // GitHub Pages optimized methods for dokumentasi - GUARANTEED DELIVERY
-                const saveMethods = [
-                    // Method 1: Multiple parallel image pings (Most reliable)
-                    async () => {
-                        console.log('📤 Method 1 - Multiple parallel image pings for dokumentasi...');
-                        const promises = [];
-                        
-                        // Send 3 parallel requests to ensure delivery
-                        for (let i = 0; i < 3; i++) {
-                            promises.push(new Promise((resolve) => {
-                                const img = new Image();
-                                const timeout = setTimeout(() => {
-                                    console.log(`📡 Dokumentasi image ping ${i + 1} timeout (normal)`);
-                                    resolve(`dok-ping-${i + 1}-timeout`);
-                                }, 4000);
-                                
-                                img.onload = () => {
-                                    clearTimeout(timeout);
-                                    console.log(`📡 Dokumentasi image ping ${i + 1} onload success`);
-                                    resolve(`dok-ping-${i + 1}-onload`);
-                                };
-                                
-                                img.onerror = () => {
-                                    clearTimeout(timeout);
-                                    console.log(`📡 Dokumentasi image ping ${i + 1} onerror (normal)`);
-                                    resolve(`dok-ping-${i + 1}-onerror`);
-                                };
-                                
-                                // Send basic dokumentasi data (without images for URL length)
-                                const params = new URLSearchParams();
-                                params.append('action', 'saveDokumentasi');
-                                params.append('nama', dokumentasiData.nama);
-                                params.append('branch', dokumentasiData.branch);
-                                params.append('tanggal', dokumentasiData.tanggal);
-                                params.append('jam', dokumentasiData.jam);
-                                params.append('jobdeskId', dokumentasiData.jobdeskId);
-                                params.append('jobdeskTitle', dokumentasiData.jobdeskTitle);
-                                params.append('komentar', dokumentasiData.komentar.substring(0, 400)); // Limit for URL
-                                params.append('lokasi', dokumentasiData.lokasi);
-                                params.append('timestamp', dokumentasiData.timestamp);
-                                params.append('hasImages', (dokumentasiData.fotoBefore || dokumentasiData.fotoAfter) ? 'true' : 'false');
-                                params.append('domain', window.location.hostname);
-                                params.append('source', 'github-pages-dok');
-                                params.append('ping_id', i + 1);
-                                params.append('_t', Date.now());
-                                
-                                img.src = `${APPS_SCRIPT_URL}?${params.toString()}`;
-                                console.log(`🖼️ Dokumentasi image ping ${i + 1} sent`);
-                            }));
-                        }
-                        
-                        const results = await Promise.all(promises);
-                        console.log('📡 Multiple dokumentasi ping results:', results);
-                        return { success: true, method: 'Multiple parallel dokumentasi pings', results };
-                    },
+                // SINGLE REQUEST METHOD - No duplicates
+                const params = new URLSearchParams();
+                params.append('action', 'saveDokumentasi');
+                params.append('nama', dokumentasiData.nama);
+                params.append('branch', dokumentasiData.branch);
+                params.append('tanggal', dokumentasiData.tanggal);
+                params.append('jam', dokumentasiData.jam);
+                params.append('jobdeskId', dokumentasiData.jobdeskId);
+                params.append('jobdeskTitle', dokumentasiData.jobdeskTitle);
+                params.append('komentar', dokumentasiData.komentar.substring(0, 500)); // Limit for URL
+                params.append('lokasi', dokumentasiData.lokasi);
+                params.append('timestamp', dokumentasiData.timestamp);
+                params.append('hasImages', (dokumentasiData.fotoBefore || dokumentasiData.fotoAfter) ? 'true' : 'false');
+                params.append('domain', window.location.hostname);
+                params.append('source', 'single-request');
+                params.append('_t', Date.now());
+                
+                const requestUrl = `${APPS_SCRIPT_URL}?${params.toString()}`;
+                console.log('🔗 Dokumentasi request URL length:', requestUrl.length);
+                
+                // Use single fetch request
+                try {
+                    const response = await fetch(requestUrl, {
+                        method: 'GET',
+                        mode: 'no-cors',
+                        cache: 'no-cache',
+                        credentials: 'omit'
+                    });
                     
-                    // Method 2: Script injection with retry for dokumentasi
-                    async () => {
-                        console.log('📤 Method 2 - Script injection with retry for dokumentasi...');
-                        return new Promise((resolve) => {
-                            let attempts = 0;
-                            const maxAttempts = 2;
-                            
-                            const tryScript = () => {
-                                attempts++;
-                                const script = document.createElement('script');
-                                const timeout = setTimeout(() => {
-                                    cleanup();
-                                    if (attempts < maxAttempts) {
-                                        console.log(`🔄 Dokumentasi script attempt ${attempts} timeout, retrying...`);
-                                        setTimeout(tryScript, 1000);
-                                    } else {
-                                        console.log('📡 Dokumentasi script injection completed (all attempts)');
-                                        resolve({ success: true, method: `Dokumentasi script injection (${attempts} attempts)` });
-                                    }
-                                }, 5000);
-                                
-                                const cleanup = () => {
-                                    if (script.parentNode) {
-                                        script.parentNode.removeChild(script);
-                                    }
-                                    clearTimeout(timeout);
-                                };
-                                
-                                script.onload = () => {
-                                    cleanup();
-                                    console.log(`📡 Dokumentasi script injection onload (attempt ${attempts})`);
-                                    resolve({ success: true, method: `Dokumentasi script injection onload (attempt ${attempts})` });
-                                };
-                                
-                                script.onerror = () => {
-                                    cleanup();
-                                    console.log(`📡 Dokumentasi script injection onerror (attempt ${attempts}) - normal`);
-                                    resolve({ success: true, method: `Dokumentasi script injection onerror (attempt ${attempts})` });
-                                };
-                                
-                                const params = new URLSearchParams();
-                                params.append('action', 'saveDokumentasi');
-                                params.append('nama', dokumentasiData.nama);
-                                params.append('branch', dokumentasiData.branch);
-                                params.append('tanggal', dokumentasiData.tanggal);
-                                params.append('jam', dokumentasiData.jam);
-                                params.append('jobdeskId', dokumentasiData.jobdeskId);
-                                params.append('jobdeskTitle', dokumentasiData.jobdeskTitle);
-                                params.append('komentar', dokumentasiData.komentar.substring(0, 300)); // Shorter for script
-                                params.append('lokasi', dokumentasiData.lokasi);
-                                params.append('timestamp', dokumentasiData.timestamp);
-                                params.append('domain', window.location.hostname);
-                                params.append('source', 'github-pages-dok-script');
-                                params.append('attempt', attempts);
-                                params.append('_callback', 'void');
-                                params.append('_t', Date.now());
-                                
-                                script.src = `${APPS_SCRIPT_URL}?${params.toString()}`;
-                                document.head.appendChild(script);
-                                console.log(`📜 Dokumentasi script injection attempt ${attempts} sent`);
-                            };
-                            
-                            tryScript();
-                        });
-                    },
+                    console.log('📡 Dokumentasi single request response:', response.type);
+                    return true;
+                } catch (fetchError) {
+                    console.log('📡 Dokumentasi fetch error, trying image ping:', fetchError.message);
                     
-                    // Method 3: Fetch with no-cors for dokumentasi
-                    async () => {
-                        console.log('📤 Method 3 - Fetch no-cors for dokumentasi...');
-                        const params = new URLSearchParams();
-                        params.append('action', 'saveDokumentasi');
-                        params.append('nama', dokumentasiData.nama);
-                        params.append('branch', dokumentasiData.branch);
-                        params.append('tanggal', dokumentasiData.tanggal);
-                        params.append('jam', dokumentasiData.jam);
-                        params.append('jobdeskId', dokumentasiData.jobdeskId);
-                        params.append('jobdeskTitle', dokumentasiData.jobdeskTitle);
-                        params.append('komentar', dokumentasiData.komentar.substring(0, 500)); // Limit for URL
-                        params.append('lokasi', dokumentasiData.lokasi);
-                        params.append('timestamp', dokumentasiData.timestamp);
-                        params.append('hasImages', (dokumentasiData.fotoBefore || dokumentasiData.fotoAfter) ? 'true' : 'false');
-                        params.append('domain', window.location.hostname);
-                        params.append('source', 'github-pages-dok-fetch');
-                        params.append('method', 'fetch-no-cors');
-                        params.append('_t', Date.now());
-                        
-                        const fetchUrl = `${APPS_SCRIPT_URL}?${params.toString()}`;
-                        console.log('🔗 Dokumentasi fetch URL length:', fetchUrl.length);
-                        
-                        try {
-                            const response = await fetch(fetchUrl, {
-                                method: 'GET',
-                                mode: 'no-cors',
-                                cache: 'no-cache',
-                                credentials: 'omit'
-                            });
-                            
-                            console.log('📡 Dokumentasi fetch no-cors response:', response.type);
-                            return { success: true, method: 'Dokumentasi fetch no-cors' };
-                        } catch (fetchError) {
-                            console.log('📡 Dokumentasi fetch no-cors error (normal):', fetchError.message);
-                            return { success: true, method: 'Dokumentasi fetch no-cors (error normal)' };
-                        }
-                    },
+                    // Fallback: Single image ping
+                    const img = new Image();
+                    img.onload = img.onerror = () => {
+                        console.log('📡 Dokumentasi fallback image ping completed');
+                    };
+                    img.src = requestUrl;
                     
-                    // Method 4: Hidden iframe for dokumentasi
-                    async () => {
-                        console.log('📤 Method 4 - Hidden iframe for dokumentasi...');
-                        return new Promise((resolve) => {
-                            const iframe = document.createElement('iframe');
-                            iframe.style.display = 'none';
-                            iframe.style.width = '0';
-                            iframe.style.height = '0';
-                            
-                            const timeout = setTimeout(() => {
-                                cleanup();
-                                console.log('📡 Dokumentasi iframe method timeout (normal)');
-                                resolve({ success: true, method: 'Dokumentasi hidden iframe (timeout)' });
-                            }, 6000);
-                            
-                            const cleanup = () => {
-                                if (iframe.parentNode) {
-                                    iframe.parentNode.removeChild(iframe);
-                                }
-                                clearTimeout(timeout);
-                            };
-                            
-                            iframe.onload = () => {
-                                cleanup();
-                                console.log('📡 Dokumentasi iframe method onload');
-                                resolve({ success: true, method: 'Dokumentasi hidden iframe (onload)' });
-                            };
-                            
-                            iframe.onerror = () => {
-                                cleanup();
-                                console.log('📡 Dokumentasi iframe method onerror (normal)');
-                                resolve({ success: true, method: 'Dokumentasi hidden iframe (onerror)' });
-                            };
-                            
-                            const params = new URLSearchParams();
-                            params.append('action', 'saveDokumentasi');
-                            params.append('nama', dokumentasiData.nama);
-                            params.append('branch', dokumentasiData.branch);
-                            params.append('tanggal', dokumentasiData.tanggal);
-                            params.append('jam', dokumentasiData.jam);
-                            params.append('jobdeskId', dokumentasiData.jobdeskId);
-                            params.append('jobdeskTitle', dokumentasiData.jobdeskTitle);
-                            params.append('komentar', dokumentasiData.komentar.substring(0, 400));
-                            params.append('lokasi', dokumentasiData.lokasi);
-                            params.append('timestamp', dokumentasiData.timestamp);
-                            params.append('domain', window.location.hostname);
-                            params.append('source', 'github-pages-dok-iframe');
-                            params.append('method', 'iframe');
-                            params.append('_t', Date.now());
-                            
-                            iframe.src = `${APPS_SCRIPT_URL}?${params.toString()}`;
-                            document.body.appendChild(iframe);
-                            console.log('🖼️ Dokumentasi hidden iframe sent');
-                        });
-                    }
-                ];
-                
-                // Execute all methods in parallel for maximum reliability
-                console.log('🚀 Executing all dokumentasi save methods in parallel for maximum reliability...');
-                const allPromises = saveMethods.map((method, index) => 
-                    method().catch(error => {
-                        console.log(`❌ Dokumentasi method ${index + 1} failed:`, error.message);
-                        return { success: false, method: `Dokumentasi method ${index + 1} failed`, error: error.message };
-                    })
-                );
-                
-                // Wait for all methods to complete
-                const results = await Promise.all(allPromises);
-                console.log('📊 All dokumentasi save method results:', results);
-                
-                // Count successful methods
-                const successCount = results.filter(r => r.success).length;
-                console.log(`✅ ${successCount}/${results.length} dokumentasi methods completed successfully`);
-                
-                // Always return success for user experience
-                return true;
+                    return true;
+                }
                 
             } catch (error) {
                 console.error('❌ Gagal menyimpan dokumentasi ke Google Sheets:', error.message);
@@ -2512,5 +2182,5 @@ _Sistem Absensi MD - Borma Padalarang_`;
         window.toggleJobdesk = toggleJobdesk;
         window.openDokumentasiModal = openDokumentasiModal;
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'994b0a27a12d8093',t:'MTc2MTQ5MzA5Ni4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'994b22f700eef3f2',t:'MTc2MTQ5NDExMi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
