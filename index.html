@@ -1,14 +1,6 @@
-<!-- Update text di header -->
+<!doctype html>
 <html lang="id">
  <head>
-  <style>@view-transition { navigation: auto; }</style>
-  <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
-  <script src="/_sdk/element_sdk.js" type="text/javascript"></script>
- </head>
- <body class="min-h-full bg-gradient-to-br from-blue-50 to-indigo-100">
-  <h1 class="text-2xl font-bold text-gray-900 mb-2">Sistem Absensi MD</h1>
-  <p class="text-gray-600 mb-2">Borma Padalarang</p><!-- Update watermark -->
-  <p class="text-white text-xs font-medium opacity-80 select-none">created by your_company 2025</p>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Sistem Absensi MD - Borma Padalarang</title>
@@ -48,6 +40,11 @@
             max-width: 400px;
         }
     </style>
+  <style>@view-transition { navigation: auto; }</style>
+  <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
+  <script src="/_sdk/element_sdk.js" type="text/javascript"></script>
+ </head>
+ <body class="min-h-full bg-gradient-to-br from-blue-50 to-indigo-100">
   <div id="app" class="min-h-full"><!-- Halaman Login MD -->
    <div id="loginPage" class="min-h-full flex items-center justify-center p-4">
     <div class="bg-white rounded-2xl shadow-xl p-8 w-full max-w-md fade-in">
@@ -64,7 +61,7 @@
       </div>
      </div>
      <form id="absenForm" class="space-y-6">
-      <div><label for="nama" class="block text-sm font-medium text-gray-700 mb-2">Nama Karyawan</label> <input type="text" id="nama" name="nama" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors" placeholder="Masukkan nama lengkap">
+      <div><label for="nama" class="block text-sm font-medium text-gray-700 mb-2">Nama MD</label> <input type="text" id="nama" name="nama" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors" placeholder="Masukkan nama lengkap MD">
       </div>
       <div><label for="branch" class="block text-sm font-medium text-gray-700 mb-2">Branch</label> <input type="text" id="branch" name="branch" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors" placeholder="Masukkan nama branch">
       </div><button type="submit" id="submitBtn" class="w-full bg-indigo-600 text-white py-3 px-4 rounded-lg hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-colors font-medium"> <span id="submitText">Verifikasi &amp; Login</span> <span id="loadingSpinner" class="hidden">
@@ -207,11 +204,11 @@
         // Apps Script URL - SUDAH DIKONFIGURASI
         const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz1t9RxomAcgh5LvyeAj9pZtGIfOsPch1kpXpbyIOkpK76aWCNAXnyed7zVPqd7oNy_xw/exec';
         
-        // 📱 KONFIGURASI WHATSAPP FONNTE - SESUAI DATA ANDA
+        // 📱 KONFIGURASI WHATSAPP FONNTE - ID GRUP YANG BENAR
         const FONNTE_CONFIG = {
-            token: 'C9BxKbVQyGzp5JRxG1re',           // Token Fonnte Anda
-            target: '120363422961733756@g.us',                       // ID Target WhatsApp Group yang benar
-            enabled: true,                            // Set false untuk disable notifikasi WA
+            token: 'C9BxKbVQyGzp5JRxG1re',                    // Token Fonnte Anda
+            target: '6285156137856-1483235574@g.us',          // ID Target WhatsApp Group LENGKAP
+            enabled: true,                                     // Set false untuk disable notifikasi WA
             apiUrl: 'https://api.fonnte.com/send'
         };
 
@@ -251,6 +248,25 @@ _Sistem Absensi MD - Borma Padalarang_`;
 🏢 *Branch:* ${data.branch}
 📅 *Tanggal:* ${tanggal}
 ⏰ *Jam Keluar:* ${jam}
+
+_Sistem Absensi MD - Borma Padalarang_`;
+                } else if (type === 'dokumentasi') {
+                    const fotoStatus = [];
+                    if (data.hasFotoBefore) fotoStatus.push('📸 Before');
+                    if (data.hasFotoAfter) fotoStatus.push('📸 After');
+                    const fotoInfo = fotoStatus.length > 0 ? fotoStatus.join(' + ') : '❌ Tidak ada foto';
+                    
+                    message = `📋 *DOKUMENTASI JOBDESK*
+
+👤 *Nama:* ${data.nama}
+🏢 *Branch:* ${data.branch}
+📅 *Tanggal:* ${tanggal}
+⏰ *Jam:* ${jam}
+
+🎯 *Jobdesk:* ${data.jobdeskTitle}
+📍 *Lokasi:* ${data.lokasi}
+💬 *Komentar:* ${data.komentar}
+${fotoInfo}
 
 _Sistem Absensi MD - Borma Padalarang_`;
                 }
@@ -1118,6 +1134,17 @@ _Sistem Absensi MD - Borma Padalarang_`;
                 // Try to save to Google Sheets
                 await saveDokumentasiToSheets(dokumentasiData);
                 
+                // 📱 KIRIM WHATSAPP OTOMATIS UNTUK DOKUMENTASI JOBDESK
+                await sendWhatsAppNotification('dokumentasi', {
+                    nama: currentKaryawan.nama,
+                    branch: currentKaryawan.branch,
+                    jobdeskTitle: jobdeskTitle,
+                    komentar: komentar,
+                    lokasi: lokasi,
+                    hasFotoBefore: !!fotoBefore,
+                    hasFotoAfter: !!fotoAfter
+                });
+                
                 // Mark jobdesk as completed
                 const today = new Date().toLocaleDateString('id-ID');
                 const karyawanKey = `${currentKaryawan.nama}_${currentKaryawan.branch}_${today}`;
@@ -1142,7 +1169,7 @@ _Sistem Absensi MD - Borma Padalarang_`;
                 dokumentasiModal.classList.add('hidden');
                 displayJobdesk();
                 
-                showSuccess('✅ Dokumentasi berhasil disimpan ke server! Jobdesk telah selesai.');
+                showSuccess('✅ Dokumentasi berhasil disimpan dan dilaporkan ke WhatsApp! Jobdesk telah selesai.');
                 
             } catch (error) {
                 console.error('❌ Error processing dokumentasi:', error);
@@ -1182,6 +1209,5 @@ _Sistem Absensi MD - Borma Padalarang_`;
         window.toggleJobdesk = toggleJobdesk;
         window.openDokumentasiModal = openDokumentasiModal;
     </script>
- <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9958a4769477d837',t:'MTc2MTYzNTczMS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9958bb67f61f072d',t:'MTc2MTYzNjY3MS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
-
