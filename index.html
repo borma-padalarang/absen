@@ -188,7 +188,7 @@
   </div><!-- Watermark -->
   <div class="fixed bottom-4 right-4 z-40 pointer-events-none">
    <div class="bg-black bg-opacity-20 backdrop-blur-sm px-3 py-1 rounded-lg">
-    <p class="text-white text-xs font-medium opacity-80 select-none">created by sami_media 2025</p>
+    <p class="text-white text-xs font-medium opacity-80 select-none">relaease 2025 smcomp © </p>
    </div>
   </div>
   <script>
@@ -249,22 +249,6 @@ _Sistem Absensi MD - Borma Padalarang_`;
 🏢 *Branch:* ${data.branch}
 📅 *Tanggal:* ${tanggal}
 ⏰ *Jam Keluar:* ${jam}
-
-_Sistem Absensi MD - Borma Padalarang_`;
-                } else if (type === 'dokumentasi') {
-                    const fotoInfo = data.hasFotoBefore || data.hasFotoAfter ? '📁 Foto tersimpan di Google Drive' : '❌ Tidak ada foto';
-                    
-                    message = `📋 *DOKUMENTASI JOBDESK*
-
-👤 *Nama:* ${data.nama}
-🏢 *Branch:* ${data.branch}
-📅 *Tanggal:* ${tanggal}
-⏰ *Jam:* ${jam}
-
-🎯 *Jobdesk:* ${data.jobdeskTitle}
-📍 *Lokasi:* ${data.lokasi}
-💬 *Komentar:* ${data.komentar}
-${fotoInfo}
 
 _Sistem Absensi MD - Borma Padalarang_`;
                 }
@@ -677,6 +661,9 @@ _Sistem Absensi MD - Borma Padalarang_`;
                 // Save logout attendance to Google Sheets IMMEDIATELY
                 saveAttendanceToSheets('logout');
                 
+                // 🔄 RESET STATUS DOKUMENTASI SAAT LOGOUT
+                resetDokumentasiStatus();
+                
                 // Clear karyawan session from localStorage
                 clearKaryawanSession();
                 
@@ -687,6 +674,21 @@ _Sistem Absensi MD - Borma Padalarang_`;
             }
             
             currentLoginTime = null;
+        }
+        
+        // 🔄 FUNGSI UNTUK RESET STATUS DOKUMENTASI SETIAP LOGOUT
+        function resetDokumentasiStatus() {
+            if (!currentKaryawan) return;
+            
+            const today = new Date().toLocaleDateString('id-ID');
+            const karyawanKey = `${currentKaryawan.nama}_${currentKaryawan.branch}_${today}`;
+            
+            // Hapus semua status dokumentasi untuk karyawan hari ini
+            if (completedJobdesk[karyawanKey]) {
+                delete completedJobdesk[karyawanKey];
+                localStorage.setItem('completedJobdesk', JSON.stringify(completedJobdesk));
+                console.log('🔄 Status dokumentasi direset untuk:', currentKaryawan.nama);
+            }
         }
         
         // Fungsi untuk menampilkan halaman terima kasih
@@ -1244,16 +1246,8 @@ _Sistem Absensi MD - Borma Padalarang_`;
                     if (!afterUpload) uploadSuccess = false;
                 }
 
-                // 📱 KIRIM WHATSAPP OTOMATIS UNTUK DOKUMENTASI JOBDESK (TANPA FOTO)
-                await sendWhatsAppNotification('dokumentasi', {
-                    nama: currentKaryawan.nama,
-                    branch: currentKaryawan.branch,
-                    jobdeskTitle: jobdeskTitle,
-                    komentar: komentar,
-                    lokasi: lokasi,
-                    hasFotoBefore: !!fotoBefore,
-                    hasFotoAfter: !!fotoAfter
-                });
+                // Dokumentasi berhasil disimpan (tanpa auto-report WhatsApp)
+                console.log('✅ Dokumentasi berhasil disimpan tanpa auto-report WhatsApp');
                 
                 // Mark jobdesk as completed
                 const today = new Date().toLocaleDateString('id-ID');
@@ -1323,5 +1317,5 @@ _Sistem Absensi MD - Borma Padalarang_`;
         window.toggleJobdesk = toggleJobdesk;
         window.openDokumentasiModal = openDokumentasiModal;
     </script>
- <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9958fd7aa7989af4',t:'MTc2MTYzOTM3Ny4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'995929a5b7addfe3',t:'MTc2MTY0MTE4Ni4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
