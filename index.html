@@ -350,7 +350,7 @@ _Sistem Absensi MD - Borma Padalarang_`;
             }
         }
 
-        // 📸 FUNGSI UNTUK MENGIRIM FOTO KE WHATSAPP - FORMAT YANG BENAR UNTUK FONNTE
+        // 📸 FUNGSI UNTUK MENGIRIM FOTO KE WHATSAPP - SEMUA FORMAT DIDUKUNG
         async function sendPhotoToWhatsApp(base64Image, caption) {
             try {
                 console.log('📸 Sending photo to WhatsApp via Fonnte...');
@@ -363,86 +363,115 @@ _Sistem Absensi MD - Borma Padalarang_`;
                     return false;
                 }
 
-                // METODE 1: FormData dengan parameter 'file' dan 'message' (BUKAN 'caption')
-                const base64Data = base64Image.split(',')[1]; // Hapus "data:image/jpeg;base64," prefix
+                // Extract MIME type dan extension
+                const mimeType = base64Image.split(';')[0].split(':')[1];
+                const extension = mimeType.split('/')[1];
+                const base64Data = base64Image.split(',')[1];
                 
-                const formData = new FormData();
-                formData.append('target', FONNTE_CONFIG.target);
-                formData.append('file', base64Data);
-                formData.append('message', caption); // Gunakan 'message' bukan 'caption'
-                formData.append('countryCode', '62');
+                console.log('📸 Detected format:', mimeType, 'Extension:', extension);
 
-                console.log('📸 Method 1: FormData with message parameter...');
-
-                const response1 = await fetch(FONNTE_CONFIG.apiUrl, {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': FONNTE_CONFIG.token
-                    },
-                    body: formData
-                });
-
-                if (response1.ok) {
-                    const result1 = await response1.json();
-                    console.log('📸 Method 1 response:', result1);
-                    
-                    if (result1.status === true || result1.status === 'true' || result1.status === 1) {
-                        console.log('✅ Photo sent successfully via Method 1');
-                        return true;
-                    }
-                }
-
-                // METODE 2: URLSearchParams dengan 'message'
-                console.log('📸 Method 2: URLSearchParams with message...');
-                
-                const params = new URLSearchParams();
-                params.append('target', FONNTE_CONFIG.target);
-                params.append('file', base64Data);
-                params.append('message', caption); // Gunakan 'message' bukan 'caption'
-                params.append('countryCode', '62');
-
-                const response2 = await fetch(FONNTE_CONFIG.apiUrl, {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': FONNTE_CONFIG.token,
-                        'Content-Type': 'application/x-www-form-urlencoded'
-                    },
-                    body: params.toString()
-                });
-
-                if (response2.ok) {
-                    const result2 = await response2.json();
-                    console.log('📸 Method 2 response:', result2);
-                    
-                    if (result2.status === true || result2.status === 'true' || result2.status === 1) {
-                        console.log('✅ Photo sent successfully via Method 2');
-                        return true;
-                    }
-                }
-
-                // METODE 3: Kirim sebagai 'url' dengan HTTP URL (bukan data URL)
-                console.log('📸 Method 3: Converting to temporary HTTP URL...');
+                // METODE 1: Blob File dengan FormData (PALING EFEKTIF)
+                console.log('📸 Method 1: Blob File with FormData...');
                 
                 try {
-                    // Convert base64 to blob URL
-                    const response = await fetch(base64Image);
-                    const blob = await response.blob();
-                    const blobUrl = URL.createObjectURL(blob);
+                    // Convert base64 to blob
+                    const byteCharacters = atob(base64Data);
+                    const byteNumbers = new Array(byteCharacters.length);
+                    for (let i = 0; i < byteCharacters.length; i++) {
+                        byteNumbers[i] = byteCharacters.charCodeAt(i);
+                    }
+                    const byteArray = new Uint8Array(byteNumbers);
+                    const blob = new Blob([byteArray], { type: mimeType });
                     
-                    // Coba dengan blob URL (mungkin tidak akan work, tapi worth trying)
-                    const params3 = new URLSearchParams();
-                    params3.append('target', FONNTE_CONFIG.target);
-                    params3.append('url', 'https://via.placeholder.com/400x300.jpg'); // Fallback URL
-                    params3.append('message', caption);
-                    params3.append('countryCode', '62');
+                    // Create proper filename
+                    const timestamp = Date.now();
+                    const filename = `dokumentasi_${timestamp}.${extension}`;
+                    
+                    const formData = new FormData();
+                    formData.append('target', FONNTE_CONFIG.target);
+                    formData.append('file', blob, filename);
+                    formData.append('caption', caption); // Coba dengan 'caption' dulu
+                    formData.append('countryCode', '62');
+
+                    const response1 = await fetch(FONNTE_CONFIG.apiUrl, {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': FONNTE_CONFIG.token
+                        },
+                        body: formData
+                    });
+
+                    if (response1.ok) {
+                        const result1 = await response1.json();
+                        console.log('📸 Method 1 response:', result1);
+                        
+                        if (result1.status === true || result1.status === 'true' || result1.status === 1) {
+                            console.log('✅ Photo sent successfully via Method 1 (Blob + caption)');
+                            return true;
+                        }
+                    }
+                } catch (blobError) {
+                    console.log('📸 Method 1 blob error:', blobError);
+                }
+
+                // METODE 2: Blob File dengan 'message' parameter
+                console.log('📸 Method 2: Blob File with message parameter...');
+                
+                try {
+                    const byteCharacters = atob(base64Data);
+                    const byteNumbers = new Array(byteCharacters.length);
+                    for (let i = 0; i < byteCharacters.length; i++) {
+                        byteNumbers[i] = byteCharacters.charCodeAt(i);
+                    }
+                    const byteArray = new Uint8Array(byteNumbers);
+                    const blob = new Blob([byteArray], { type: mimeType });
+                    
+                    const timestamp = Date.now();
+                    const filename = `dokumentasi_${timestamp}.${extension}`;
+                    
+                    const formData2 = new FormData();
+                    formData2.append('target', FONNTE_CONFIG.target);
+                    formData2.append('file', blob, filename);
+                    formData2.append('message', caption); // Gunakan 'message'
+                    formData2.append('countryCode', '62');
+
+                    const response2 = await fetch(FONNTE_CONFIG.apiUrl, {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': FONNTE_CONFIG.token
+                        },
+                        body: formData2
+                    });
+
+                    if (response2.ok) {
+                        const result2 = await response2.json();
+                        console.log('📸 Method 2 response:', result2);
+                        
+                        if (result2.status === true || result2.status === 'true' || result2.status === 1) {
+                            console.log('✅ Photo sent successfully via Method 2 (Blob + message)');
+                            return true;
+                        }
+                    }
+                } catch (blobError) {
+                    console.log('📸 Method 2 blob error:', blobError);
+                }
+
+                // METODE 3: Raw base64 dengan FormData
+                console.log('📸 Method 3: Raw base64 with FormData...');
+                
+                try {
+                    const formData3 = new FormData();
+                    formData3.append('target', FONNTE_CONFIG.target);
+                    formData3.append('file', base64Data);
+                    formData3.append('caption', caption);
+                    formData3.append('countryCode', '62');
 
                     const response3 = await fetch(FONNTE_CONFIG.apiUrl, {
                         method: 'POST',
                         headers: {
-                            'Authorization': FONNTE_CONFIG.token,
-                            'Content-Type': 'application/x-www-form-urlencoded'
+                            'Authorization': FONNTE_CONFIG.token
                         },
-                        body: params3.toString()
+                        body: formData3
                     });
 
                     if (response3.ok) {
@@ -450,41 +479,31 @@ _Sistem Absensi MD - Borma Padalarang_`;
                         console.log('📸 Method 3 response:', result3);
                         
                         if (result3.status === true || result3.status === 'true' || result3.status === 1) {
-                            console.log('✅ Photo sent successfully via Method 3');
+                            console.log('✅ Photo sent successfully via Method 3 (Raw base64)');
                             return true;
                         }
                     }
-                    
-                    // Cleanup blob URL
-                    URL.revokeObjectURL(blobUrl);
-                } catch (blobError) {
-                    console.log('📸 Method 3 blob error:', blobError);
+                } catch (rawError) {
+                    console.log('📸 Method 3 raw error:', rawError);
                 }
 
-                // METODE 4: Kirim sebagai File object dengan nama file yang tepat
-                console.log('📸 Method 4: File object with proper filename...');
+                // METODE 4: URLSearchParams dengan base64
+                console.log('📸 Method 4: URLSearchParams with base64...');
                 
                 try {
-                    const response = await fetch(base64Image);
-                    const blob = await response.blob();
-                    
-                    // Tentukan extension berdasarkan MIME type
-                    const mimeType = base64Image.split(';')[0].split(':')[1];
-                    const extension = mimeType.split('/')[1];
-                    const filename = `photo_${Date.now()}.${extension}`;
-                    
-                    const formData4 = new FormData();
-                    formData4.append('target', FONNTE_CONFIG.target);
-                    formData4.append('file', blob, filename);
-                    formData4.append('message', caption); // Gunakan 'message'
-                    formData4.append('countryCode', '62');
+                    const params4 = new URLSearchParams();
+                    params4.append('target', FONNTE_CONFIG.target);
+                    params4.append('file', base64Data);
+                    params4.append('caption', caption);
+                    params4.append('countryCode', '62');
 
                     const response4 = await fetch(FONNTE_CONFIG.apiUrl, {
                         method: 'POST',
                         headers: {
-                            'Authorization': FONNTE_CONFIG.token
+                            'Authorization': FONNTE_CONFIG.token,
+                            'Content-Type': 'application/x-www-form-urlencoded'
                         },
-                        body: formData4
+                        body: params4.toString()
                     });
 
                     if (response4.ok) {
@@ -492,44 +511,118 @@ _Sistem Absensi MD - Borma Padalarang_`;
                         console.log('📸 Method 4 response:', result4);
                         
                         if (result4.status === true || result4.status === 'true' || result4.status === 1) {
-                            console.log('✅ Photo sent successfully via Method 4');
+                            console.log('✅ Photo sent successfully via Method 4 (URLSearchParams)');
                             return true;
                         }
                     }
-                } catch (blobError) {
-                    console.log('📸 Method 4 blob error:', blobError);
+                } catch (urlError) {
+                    console.log('📸 Method 4 URL error:', urlError);
                 }
 
-                // METODE 5: Kirim hanya pesan teks dengan info foto
-                console.log('📸 Method 5: Fallback to text message with photo info...');
+                // METODE 5: Coba dengan endpoint khusus media Fonnte
+                console.log('📸 Method 5: Fonnte media endpoint...');
                 
-                const fallbackMessage = `${caption}\n\n📸 [Foto dokumentasi tersedia - tidak dapat dikirim otomatis]`;
-                
-                const params5 = new URLSearchParams();
-                params5.append('target', FONNTE_CONFIG.target);
-                params5.append('message', fallbackMessage);
-                params5.append('countryCode', '62');
+                try {
+                    const mediaFormData = new FormData();
+                    
+                    // Convert base64 to blob lagi
+                    const byteCharacters = atob(base64Data);
+                    const byteNumbers = new Array(byteCharacters.length);
+                    for (let i = 0; i < byteCharacters.length; i++) {
+                        byteNumbers[i] = byteCharacters.charCodeAt(i);
+                    }
+                    const byteArray = new Uint8Array(byteNumbers);
+                    const blob = new Blob([byteArray], { type: mimeType });
+                    
+                    mediaFormData.append('target', FONNTE_CONFIG.target);
+                    mediaFormData.append('file', blob, `foto_${Date.now()}.${extension}`);
+                    mediaFormData.append('caption', caption);
 
-                const response5 = await fetch(FONNTE_CONFIG.apiUrl, {
+                    // Coba endpoint alternatif jika ada
+                    const mediaResponse = await fetch('https://api.fonnte.com/send', {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': FONNTE_CONFIG.token
+                        },
+                        body: mediaFormData
+                    });
+
+                    if (mediaResponse.ok) {
+                        const mediaResult = await mediaResponse.json();
+                        console.log('📸 Method 5 media response:', mediaResult);
+                        
+                        if (mediaResult.status === true || mediaResult.status === 'true' || mediaResult.status === 1) {
+                            console.log('✅ Photo sent successfully via Method 5 (Media endpoint)');
+                            return true;
+                        }
+                    }
+                } catch (mediaError) {
+                    console.log('📸 Method 5 media error:', mediaError);
+                }
+
+                // METODE 6: Kirim dengan JSON payload
+                console.log('📸 Method 6: JSON payload...');
+                
+                try {
+                    const jsonPayload = {
+                        target: FONNTE_CONFIG.target,
+                        file: base64Data,
+                        caption: caption,
+                        countryCode: '62'
+                    };
+
+                    const response6 = await fetch(FONNTE_CONFIG.apiUrl, {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': FONNTE_CONFIG.token,
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(jsonPayload)
+                    });
+
+                    if (response6.ok) {
+                        const result6 = await response6.json();
+                        console.log('📸 Method 6 response:', result6);
+                        
+                        if (result6.status === true || result6.status === 'true' || result6.status === 1) {
+                            console.log('✅ Photo sent successfully via Method 6 (JSON)');
+                            return true;
+                        }
+                    }
+                } catch (jsonError) {
+                    console.log('📸 Method 6 JSON error:', jsonError);
+                }
+
+                // METODE 7: Fallback - kirim pesan teks dengan info foto
+                console.log('📸 Method 7: Fallback text message...');
+                
+                const fallbackMessage = `${caption}\n\n📸 [Foto dokumentasi ${extension.toUpperCase()} tersedia - ${Math.round(base64Data.length/1024)}KB]`;
+                
+                const params7 = new URLSearchParams();
+                params7.append('target', FONNTE_CONFIG.target);
+                params7.append('message', fallbackMessage);
+                params7.append('countryCode', '62');
+
+                const response7 = await fetch(FONNTE_CONFIG.apiUrl, {
                     method: 'POST',
                     headers: {
                         'Authorization': FONNTE_CONFIG.token,
                         'Content-Type': 'application/x-www-form-urlencoded'
                     },
-                    body: params5.toString()
+                    body: params7.toString()
                 });
 
-                if (response5.ok) {
-                    const result5 = await response5.json();
-                    console.log('📸 Method 5 response:', result5);
+                if (response7.ok) {
+                    const result7 = await response7.json();
+                    console.log('📸 Method 7 response:', result7);
                     
-                    if (result5.status === true || result5.status === 'true' || result5.status === 1) {
-                        console.log('✅ Fallback message sent successfully via Method 5');
+                    if (result7.status === true || result7.status === 'true' || result7.status === 1) {
+                        console.log('✅ Fallback message sent successfully via Method 7');
                         return true;
                     }
                 }
 
-                console.log('⚠️ All photo methods failed');
+                console.log('⚠️ All photo sending methods failed');
                 return false;
 
             } catch (error) {
@@ -1433,5 +1526,5 @@ _Sistem Absensi MD - Borma Padalarang_`;
         window.toggleJobdesk = toggleJobdesk;
         window.openDokumentasiModal = openDokumentasiModal;
     </script>
- <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9958e4e8e0d2658d',t:'MTc2MTYzODM3MS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9958f0b38180cdd5',t:'MTc2MTYzODg1My4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
