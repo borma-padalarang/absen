@@ -303,17 +303,33 @@ _Sistem Absensi MD - Borma Padalarang_`;
                 // KIRIM FOTO JIKA ADA (UNTUK DOKUMENTASI)
                 if (type === 'dokumentasi' && hasImages) {
                     console.log('📸 Sending documentation photos...');
+                    console.log('📸 Has fotoBefore:', !!data.fotoBefore);
+                    console.log('📸 Has fotoAfter:', !!data.fotoAfter);
+                    
+                    // Delay setelah pesan teks
+                    await new Promise(resolve => setTimeout(resolve, 3000));
                     
                     // Kirim foto Before jika ada
                     if (data.fotoBefore) {
-                        await sendPhotoToWhatsApp(data.fotoBefore, `📸 *FOTO BEFORE* - ${data.jobdeskTitle}\n\n👤 ${data.nama} | 🏢 ${data.branch}\n📍 ${data.lokasi}`);
-                        // Delay 2 detik antara foto
-                        await new Promise(resolve => setTimeout(resolve, 2000));
+                        console.log('📸 Sending BEFORE photo...');
+                        const beforeSuccess = await sendPhotoToWhatsApp(
+                            data.fotoBefore, 
+                            `📸 *FOTO BEFORE* - ${data.jobdeskTitle}\n\n👤 ${data.nama} | 🏢 ${data.branch}\n📍 ${data.lokasi}`
+                        );
+                        console.log('📸 Before photo result:', beforeSuccess);
+                        
+                        // Delay 3 detik antara foto
+                        await new Promise(resolve => setTimeout(resolve, 3000));
                     }
                     
                     // Kirim foto After jika ada
                     if (data.fotoAfter) {
-                        await sendPhotoToWhatsApp(data.fotoAfter, `📸 *FOTO AFTER* - ${data.jobdeskTitle}\n\n👤 ${data.nama} | 🏢 ${data.branch}\n📍 ${data.lokasi}`);
+                        console.log('📸 Sending AFTER photo...');
+                        const afterSuccess = await sendPhotoToWhatsApp(
+                            data.fotoAfter, 
+                            `📸 *FOTO AFTER* - ${data.jobdeskTitle}\n\n👤 ${data.nama} | 🏢 ${data.branch}\n📍 ${data.lokasi}`
+                        );
+                        console.log('📸 After photo result:', afterSuccess);
                     }
                 }
 
@@ -338,9 +354,80 @@ _Sistem Absensi MD - Borma Padalarang_`;
         async function sendPhotoToWhatsApp(base64Image, caption) {
             try {
                 console.log('📸 Sending photo to WhatsApp...');
+                console.log('📸 Caption:', caption);
+                console.log('📸 Image size:', base64Image.length, 'characters');
                 
-                // Convert base64 to blob untuk Fonnte
-                const base64Data = base64Image.split(',')[1]; // Remove data:image/jpeg;base64, prefix
+                // Pastikan format base64 benar
+                if (!base64Image.startsWith('data:image/')) {
+                    console.error('❌ Invalid base64 format');
+                    return false;
+                }
+                
+                // Gunakan FormData untuk mengirim file dengan benar
+                const formData = new FormData();
+                
+                // Convert base64 to blob
+                const response = await fetch(base64Image);
+                const blob = await response.blob();
+                
+                // Create file from blob
+                const file = new File([blob], 'photo.jpg', { type: 'image/jpeg' });
+                
+                formData.append('target', FONNTE_CONFIG.target);
+                formData.append('file', file);
+                formData.append('caption', caption);
+                formData.append('countryCode', '62');
+
+                console.log('📸 Sending FormData with file...');
+
+                const photoResponse = await fetch(FONNTE_CONFIG.apiUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': FONNTE_CONFIG.token
+                        // Jangan set Content-Type untuk FormData, browser akan set otomatis
+                    },
+                    body: formData
+                });
+
+                console.log('📸 Photo response status:', photoResponse.status);
+                
+                if (photoResponse.ok) {
+                    const photoResult = await photoResponse.json();
+                    console.log('📸 Photo WhatsApp API response:', photoResult);
+                    
+                    if (photoResult.status === true || photoResult.status === 'true' || photoResult.status === 1) {
+                        console.log('✅ Photo sent successfully to WhatsApp');
+                        return true;
+                    } else {
+                        console.log('⚠️ Photo WhatsApp API error:', photoResult.reason || 'Unknown error');
+                        
+                        // Coba metode alternatif dengan base64 langsung
+                        return await sendPhotoAlternative(base64Image, caption);
+                    }
+                } else {
+                    console.log('⚠️ Photo HTTP error:', photoResponse.status);
+                    const errorText = await photoResponse.text();
+                    console.log('📸 Error response:', errorText);
+                    
+                    // Coba metode alternatif
+                    return await sendPhotoAlternative(base64Image, caption);
+                }
+
+            } catch (error) {
+                console.error('❌ Error sending photo to WhatsApp:', error);
+                
+                // Coba metode alternatif
+                return await sendPhotoAlternative(base64Image, caption);
+            }
+        }
+
+        // 📸 METODE ALTERNATIF UNTUK MENGIRIM FOTO
+        async function sendPhotoAlternative(base64Image, caption) {
+            try {
+                console.log('📸 Trying alternative method for photo...');
+                
+                // Method 1: Kirim base64 langsung tanpa prefix
+                const base64Data = base64Image.split(',')[1];
                 
                 const photoParams = new URLSearchParams();
                 photoParams.append('target', FONNTE_CONFIG.target);
@@ -357,26 +444,47 @@ _Sistem Absensi MD - Borma Padalarang_`;
                     body: photoParams.toString()
                 });
 
-                console.log('📸 Photo response status:', photoResponse.status);
-                
                 if (photoResponse.ok) {
                     const photoResult = await photoResponse.json();
-                    console.log('📸 Photo WhatsApp API response:', photoResult);
+                    console.log('📸 Alternative method response:', photoResult);
                     
                     if (photoResult.status === true || photoResult.status === 'true' || photoResult.status === 1) {
-                        console.log('✅ Photo sent successfully to WhatsApp');
+                        console.log('✅ Photo sent via alternative method');
                         return true;
-                    } else {
-                        console.log('⚠️ Photo WhatsApp API error:', photoResult.reason || 'Unknown error');
-                        return false;
                     }
-                } else {
-                    console.log('⚠️ Photo HTTP error:', photoResponse.status);
-                    return false;
                 }
+                
+                // Method 2: Kirim dengan URL data langsung
+                const urlParams = new URLSearchParams();
+                urlParams.append('target', FONNTE_CONFIG.target);
+                urlParams.append('url', base64Image);
+                urlParams.append('caption', caption);
+                urlParams.append('countryCode', '62');
+
+                const urlResponse = await fetch(FONNTE_CONFIG.apiUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': FONNTE_CONFIG.token,
+                        'Content-Type': 'application/x-www-form-urlencoded'
+                    },
+                    body: urlParams.toString()
+                });
+
+                if (urlResponse.ok) {
+                    const urlResult = await urlResponse.json();
+                    console.log('📸 URL method response:', urlResult);
+                    
+                    if (urlResult.status === true || urlResult.status === 'true' || urlResult.status === 1) {
+                        console.log('✅ Photo sent via URL method');
+                        return true;
+                    }
+                }
+                
+                console.log('⚠️ All photo methods failed, but continuing...');
+                return false;
 
             } catch (error) {
-                console.error('❌ Error sending photo to WhatsApp:', error);
+                console.error('❌ Alternative photo method error:', error);
                 return false;
             }
         }
@@ -1276,5 +1384,5 @@ _Sistem Absensi MD - Borma Padalarang_`;
         window.toggleJobdesk = toggleJobdesk;
         window.openDokumentasiModal = openDokumentasiModal;
     </script>
- <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9958c78bc4624074',t:'MTc2MTYzNzE2OC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9958d0e8c3f1fe05',t:'MTc2MTYzNzU1MS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
