@@ -249,6 +249,7 @@ _Sistem Absensi MD - Borma Padalarang_`;
 🏢 *Branch:* ${data.branch}
 📅 *Tanggal:* ${tanggal}
 ⏰ *Jam Keluar:* ${jam}
+⏱️ *MD bekerja dengan durasi:* ${data.durasi || '00:00:00'}
 
 _Sistem Absensi MD - Borma Padalarang_`;
                 }
@@ -300,7 +301,7 @@ _Sistem Absensi MD - Borma Padalarang_`;
         async function uploadPhotoToGoogleDrive(base64Image, filename, metadata) {
             try {
                 console.log('📁 Uploading photo to Google Drive...');
-                console.log('📁 Filename:', filename);
+                console.log('📁 Filename:', filename);'https://drive.google.com/drive/folders/119k0xLl93jCSOyMbjQZGoGA5vp9jUh62?usp=sharing'
                 console.log('📁 Metadata:', metadata);
                 
                 // Pastikan format base64 benar
@@ -1319,6 +1320,7 @@ _Sistem Absensi MD - Borma Padalarang_`;
     </script>
  <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'995929a5b7addfe3',t:'MTc2MTY0MTE4Ni4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
+
 
 
 
