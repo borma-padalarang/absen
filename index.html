@@ -55,7 +55,7 @@
         </svg>
        </div>
       </div>
-      <h1 class="text-2xl font-bold text-gray-900 mb-2">Sistem Absensi MD</h1>
+      <h1 class="text-2xl font-bold text-gray-900 mb-2">Selamat Datang MD</h1>
       <p class="text-gray-600 mb-2">Borma Padalarang</p>
       <p class="text-sm text-gray-500">Silakan masukkan data untuk verifikasi</p><!-- WhatsApp Status Indicator -->
       <div class="mt-4 flex items-center justify-center">
@@ -192,7 +192,7 @@
   </div><!-- Watermark -->
   <div class="fixed bottom-4 right-4 z-40 pointer-events-none">
    <div class="bg-black bg-opacity-20 backdrop-blur-sm px-3 py-1 rounded-lg">
-    <p class="text-white text-xs font-medium opacity-80 select-none">created by sami_media 2025</p>
+    <p class="text-white text-xs font-medium opacity-80 select-none">release 2025</p>
    </div>
   </div>
   <script>
@@ -203,12 +203,12 @@
         const DOKUMENTASI_SHEET_NAME = 'Dokumentasi';
         
         const KARYAWAN_SHEETS_URL = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:json&sheet=${KARYAWAN_SHEET_NAME}`;
-        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxIzBrkr4pINrvhHG6LxadULs0nOEreOITZ7uCdAeux/dev';
+        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyQr8Up6P1_8hCNbuCgfkXbuzQtQMKr-6QCtW-kPHlS_ThP4Q2t17QKLDDb5ql1Py1eng/exec';
         
         // 📱 KONFIGURASI WHATSAPP FONNTE
         const FONNTE_CONFIG = {
             token: 'hPehvRvjs8c8AuK5Y8az',
-            target: '62',
+            target: '6287749975593',
             enabled: true,
             apiUrl: 'https://api.fonnte.com/send'
         };
@@ -253,6 +253,7 @@ _Sistem Absensi MD - Borma Padalarang_`;
 📅 *Tanggal:* ${tanggal}
 ⏰ *Jam Keluar:* ${jam}
 ⏱️ *MD bekerja dengan durasi:* ${data.durasi || '00:00:00'}
+Lihat Dokumentasi : https://drive.google.com/drive/folders/1CcA8L9HSMm_zR8LTww_wIFsP_KknDdlQ?usp=sharing
 
 _Sistem Absensi MD - Borma Padalarang_`;
                 }
@@ -293,18 +294,23 @@ _Sistem Absensi MD - Borma Padalarang_`;
             }
         }
 
-        // 📁 FUNGSI UPLOAD FOTO KE GOOGLE DRIVE - IMPROVED VERSION
+        // 📁 FUNGSI UPLOAD FOTO KE GOOGLE DRIVE - DENGAN LOGGING LENGKAP
         async function uploadPhotoToGoogleDrive(base64Image, filename, metadata) {
             try {
-                console.log('📁 [UPLOAD] Starting photo upload to Google Drive...');
+                console.log('📁 ========== MULAI UPLOAD FOTO ==========');
+                console.log('📁 Filename:', filename);
+                console.log('📁 Metadata:', metadata);
                 
                 if (!base64Image || !base64Image.startsWith('data:image/')) {
-                    console.error('❌ [UPLOAD] Invalid base64 format');
+                    console.error('❌ Invalid base64 format');
                     return false;
                 }
 
                 const mimeType = base64Image.split(';')[0].split(':')[1];
                 const base64Data = base64Image.split(',')[1];
+                
+                console.log('📁 MIME Type:', mimeType);
+                console.log('📁 Base64 data length:', base64Data.length);
                 
                 const cleanFilename = filename
                     .replace(/[^a-zA-Z0-9._-]/g, '_')
@@ -312,194 +318,89 @@ _Sistem Absensi MD - Borma Padalarang_`;
                     .replace(/_{2,}/g, '_')
                     .substring(0, 100);
                 
-                console.log('📁 [UPLOAD] Cleaned filename:', cleanFilename);
+                console.log('📁 Cleaned filename:', cleanFilename);
                 
                 const fileSizeKB = Math.round(base64Data.length * 0.75 / 1024);
-                console.log('📁 [UPLOAD] Estimated file size:', fileSizeKB, 'KB');
+                console.log('📁 Estimated file size:', fileSizeKB, 'KB');
 
                 if (fileSizeKB > 5120) {
-                    console.error('❌ [UPLOAD] File too large:', fileSizeKB, 'KB');
+                    console.error('❌ File too large:', fileSizeKB, 'KB');
                     showError('Foto terlalu besar! Maksimal 5MB');
                     return false;
                 }
 
-                // STRATEGI UPLOAD MULTI-METHOD DENGAN RETRY
-                let uploadSuccess = false;
-                let uploadMethod = '';
-
-                // METHOD 1: POST dengan Content-Type text/plain untuk bypass CORS
-                if (!uploadSuccess) {
-                    try {
-                        console.log('📁 [UPLOAD] Method 1: POST text/plain...');
-                        
-                        const uploadPayload = {
-                            action: 'uploadPhoto',
-                            filename: cleanFilename,
-                            mimeType: mimeType,
-                            base64Data: base64Data,
-                            metadata: metadata,
-                            timestamp: new Date().toISOString(),
-                            source: 'dokumentasi-md-v2'
-                        };
-
-                        const postResponse = await fetch(APPS_SCRIPT_URL, {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'text/plain',
-                            },
-                            body: JSON.stringify(uploadPayload),
-                            mode: 'cors',
-                            cache: 'no-cache'
-                        });
-
-                        if (postResponse.ok) {
-                            const result = await postResponse.json();
-                            console.log('📁 [UPLOAD] Method 1 response:', result);
-                            
-                            if (result.status === 'success' || result.success === true) {
-                                uploadSuccess = true;
-                                uploadMethod = 'POST text/plain';
-                                console.log('✅ [UPLOAD] Success via Method 1');
-                            }
-                        }
-                    } catch (error) {
-                        console.log('📁 [UPLOAD] Method 1 failed:', error.message);
-                    }
+                // METODE 1: POST dengan FormData
+                console.log('📁 Mencoba upload dengan POST FormData...');
+                const formData = new FormData();
+                formData.append('action', 'uploadPhoto');
+                formData.append('filename', cleanFilename);
+                formData.append('mimeType', mimeType);
+                formData.append('base64Data', base64Data);
+                formData.append('nama', metadata.nama);
+                formData.append('branch', metadata.branch);
+                formData.append('jobdesk', metadata.jobdesk);
+                formData.append('type', metadata.type);
+                formData.append('lokasi', metadata.lokasi);
+                formData.append('tanggal', metadata.tanggal);
+                formData.append('jam', metadata.jam);
+                formData.append('timestamp', new Date().toISOString());
+                
+                try {
+                    const response = await fetch(APPS_SCRIPT_URL, {
+                        method: 'POST',
+                        body: formData,
+                        mode: 'no-cors'
+                    });
+                    console.log('✅ POST FormData request sent');
+                } catch (postError) {
+                    console.log('⚠️ POST FormData error:', postError.message);
                 }
-
-                // METHOD 2: POST FormData dengan URLSearchParams
-                if (!uploadSuccess) {
-                    try {
-                        console.log('📁 [UPLOAD] Method 2: POST URLSearchParams...');
-                        
-                        const formParams = new URLSearchParams();
-                        formParams.append('action', 'uploadPhoto');
-                        formParams.append('filename', cleanFilename);
-                        formParams.append('mimeType', mimeType);
-                        formParams.append('base64Data', base64Data);
-                        formParams.append('metadata', JSON.stringify(metadata));
-                        formParams.append('timestamp', new Date().toISOString());
-                        formParams.append('source', 'dokumentasi-md-v2');
-
-                        const postResponse = await fetch(APPS_SCRIPT_URL, {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/x-www-form-urlencoded',
-                            },
-                            body: formParams.toString(),
-                            mode: 'cors',
-                            cache: 'no-cache'
-                        });
-
-                        if (postResponse.ok) {
-                            const result = await postResponse.json();
-                            console.log('📁 [UPLOAD] Method 2 response:', result);
-                            
-                            if (result.status === 'success' || result.success === true) {
-                                uploadSuccess = true;
-                                uploadMethod = 'POST URLSearchParams';
-                                console.log('✅ [UPLOAD] Success via Method 2');
-                            }
-                        }
-                    } catch (error) {
-                        console.log('📁 [UPLOAD] Method 2 failed:', error.message);
-                    }
+                
+                // METODE 2: GET dengan URLSearchParams (BACKUP)
+                console.log('📁 Mencoba upload dengan GET URLSearchParams...');
+                const params = new URLSearchParams();
+                params.append('action', 'uploadPhoto');
+                params.append('filename', cleanFilename);
+                params.append('mimeType', mimeType);
+                params.append('base64Data', base64Data.substring(0, 50000)); // Limit untuk GET
+                params.append('nama', metadata.nama);
+                params.append('branch', metadata.branch);
+                params.append('jobdesk', metadata.jobdesk);
+                params.append('type', metadata.type);
+                params.append('lokasi', metadata.lokasi);
+                params.append('tanggal', metadata.tanggal);
+                params.append('jam', metadata.jam);
+                params.append('timestamp', new Date().toISOString());
+                params.append('_t', Date.now());
+                
+                const getUrl = `${APPS_SCRIPT_URL}?${params.toString()}`;
+                
+                try {
+                    await fetch(getUrl, {
+                        method: 'GET',
+                        mode: 'no-cors',
+                        cache: 'no-cache'
+                    });
+                    console.log('✅ GET URLSearchParams request sent');
+                } catch (getError) {
+                    console.log('⚠️ GET URLSearchParams error:', getError.message);
                 }
-
-                // METHOD 3: GET dengan chunked base64 data (untuk file kecil)
-                if (!uploadSuccess && fileSizeKB < 1024) {
-                    try {
-                        console.log('📁 [UPLOAD] Method 3: GET with chunked data...');
-                        
-                        const chunkSize = 8000;
-                        const totalChunks = Math.ceil(base64Data.length / chunkSize);
-                        
-                        for (let i = 0; i < totalChunks; i++) {
-                            const chunk = base64Data.substring(i * chunkSize, (i + 1) * chunkSize);
-                            
-                            const params = new URLSearchParams();
-                            params.append('action', 'uploadPhotoChunk');
-                            params.append('filename', cleanFilename);
-                            params.append('mimeType', mimeType);
-                            params.append('chunk', chunk);
-                            params.append('chunkIndex', i.toString());
-                            params.append('totalChunks', totalChunks.toString());
-                            params.append('metadata', JSON.stringify(metadata));
-                            params.append('timestamp', new Date().toISOString());
-                            params.append('_t', Date.now());
-                            
-                            const chunkUrl = `${APPS_SCRIPT_URL}?${params.toString()}`;
-                            
-                            await fetch(chunkUrl, {
-                                method: 'GET',
-                                mode: 'no-cors',
-                                cache: 'no-cache'
-                            }).catch(() => {
-                                const img = new Image();
-                                img.src = chunkUrl;
-                            });
-                            
-                            await new Promise(resolve => setTimeout(resolve, 100));
-                        }
-                        
-                        uploadSuccess = true;
-                        uploadMethod = 'GET chunked';
-                        console.log('✅ [UPLOAD] Success via Method 3 (chunked)');
-                    } catch (error) {
-                        console.log('📁 [UPLOAD] Method 3 failed:', error.message);
-                    }
-                }
-
-                // METHOD 4: Fallback notification dengan metadata lengkap
-                if (!uploadSuccess) {
-                    console.log('📁 [UPLOAD] Method 4: Fallback notification...');
-                    
-                    const notificationParams = new URLSearchParams();
-                    notificationParams.append('action', 'uploadPhoto');
-                    notificationParams.append('filename', cleanFilename);
-                    notificationParams.append('mimeType', mimeType);
-                    notificationParams.append('fileSize', fileSizeKB + 'KB');
-                    notificationParams.append('nama', metadata.nama);
-                    notificationParams.append('branch', metadata.branch);
-                    notificationParams.append('jobdesk', metadata.jobdesk);
-                    notificationParams.append('type', metadata.type);
-                    notificationParams.append('lokasi', metadata.lokasi);
-                    notificationParams.append('tanggal', metadata.tanggal);
-                    notificationParams.append('jam', metadata.jam);
-                    notificationParams.append('timestamp', new Date().toISOString());
-                    notificationParams.append('source', 'dokumentasi-md-fallback');
-                    notificationParams.append('_t', Date.now());
-
-                    const notificationUrl = `${APPS_SCRIPT_URL}?${notificationParams.toString()}`;
-                    
-                    try {
-                        await fetch(notificationUrl, {
-                            method: 'GET',
-                            mode: 'no-cors',
-                            cache: 'no-cache'
-                        });
-                    } catch (fetchError) {
-                        const img = new Image();
-                        img.src = notificationUrl;
-                    }
-                    
-                    uploadSuccess = true;
-                    uploadMethod = 'Fallback notification';
-                    console.log('✅ [UPLOAD] Fallback notification sent');
-                }
-
-                if (uploadSuccess) {
-                    console.log(`✅ [UPLOAD] Photo uploaded successfully via ${uploadMethod}`);
-                    showSuccess(`📁 Foto berhasil disimpan ke Google Drive! (${uploadMethod})`);
-                    return true;
-                } else {
-                    console.log('⚠️ [UPLOAD] All upload methods failed');
-                    showError('Gagal upload foto ke Google Drive');
-                    return false;
-                }
+                
+                // METODE 3: Image pixel tracking (FALLBACK)
+                console.log('📁 Mencoba upload dengan Image pixel tracking...');
+                const img = new Image();
+                img.src = getUrl;
+                console.log('✅ Image pixel tracking initiated');
+                
+                console.log('📁 ========== UPLOAD SELESAI ==========');
+                console.log('📁 Semua metode upload telah dijalankan');
+                console.log('📁 Silakan cek Google Apps Script logs untuk detail');
+                
+                showSuccess('📁 Foto sedang diupload ke Google Drive...');
+                return true;
 
             } catch (error) {
-                console.error('❌ [UPLOAD] Critical error uploading photo:', error);
+                console.error('❌ Error uploading photo:', error);
                 showError('Gagal upload foto: ' + error.message);
                 return false;
             }
@@ -1371,5 +1272,5 @@ _Sistem Absensi MD - Borma Padalarang_`;
         window.toggleJobdesk = toggleJobdesk;
         window.openDokumentasiModal = openDokumentasiModal;
     </script>
- <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'99cc244703173e61',t:'MTc2Mjg0NjgyOC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'99cc60c6175cf8da',t:'MTc2Mjg0OTMwNi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
